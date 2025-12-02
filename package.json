@@ -1,0 +1,23 @@
+{
+  "name": "configurateur-biallais",
+  "version": "1.0.0",
+  "description": "Configurateur de façade Biacolor",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "author": "Biallais Industries",
+  "license": "ISC",
+  "build": {
+    "appId": "com.biallais.configurateur",
+    "win": {
+      "target": "nsis",
+      "icon": "biallais_logo 1.png" 
+    }
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}
