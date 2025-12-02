@@ -422,3 +422,46 @@ details[open] .advanced-summary::after { content: '-'; }
         grid-template-columns: repeat(2, 1fr); 
     }
 }
+/* =========================================
+   FIX FINAL : ANTI-SCROLL HORIZONTAL & LARGEUR
+   ========================================= */
+
+/* 1. La règle d'or pour éviter les erreurs de calcul de largeur */
+* {
+    box-sizing: border-box;
+}
+
+/* 2. On interdit formellement le dépassement horizontal */
+html, body {
+    max-width: 100%;
+    overflow-x: hidden; /* Coupe tout ce qui dépasse à droite */
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* 3. On force l'en-tête à prendre toute la largeur sans marges bizarres */
+.site-header {
+    width: 100%;
+    max-width: 100vw; /* Viewport Width */
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+/* 4. Ajustement du conteneur principal sur mobile pour éviter les débords */
+@media (max-width: 900px) {
+    .app-wrapper {
+        width: 100%;
+        max-width: 100%;
+        padding-left: 10px; /* On réduit les marges internes sur mobile */
+        padding-right: 10px;
+        margin: 0;
+    }
+    
+    /* On s'assure que le canvas ne pousse pas les murs */
+    canvas, .canvas-container-wrapper {
+        max-width: 100%;
+    }
+}
