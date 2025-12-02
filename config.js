@@ -166,18 +166,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const textureUrl = canvas.toDataURL();
             patternLayer.style.backgroundImage = `url(${textureUrl})`;
             
-            // --- CORRECTION ZOOM MOBILE ---
-            // On détecte si l'écran est petit (mobile)
+            // --- CORRECTION HD / RETINA ---
+            // 1. On récupère le ratio de l'écran (ex: 3 sur iPhone, 1 sur PC vieux)
+            const dpr = window.devicePixelRatio || 1;
+            
+            // 2. On détecte si c'est un mobile (petit écran)
             const isMobile = window.innerWidth <= 900;
-            
-            // Si mobile, on réduit l'échelle à 50% de la normale (0.5) pour "dézoomer"
-            // Sinon on garde 1 (100%)
-            const mobileFactor = isMobile ? 0.5 : 1.0; 
 
-            // On applique ce facteur au calcul
-            const scale = (config.scalePattern || 0.3) * mobileFactor;
+            // 3. Calcul savant :
+            // - On prend la largeur réelle du canvas
+            // - On divise par le DPR pour remettre à l'échelle humaine (taille logique)
+            // - On applique le scale de la config (0.25)
+            // - Si mobile, on réduit ENCORE un peu (x0.6) pour voir plus de surface
             
-            patternLayer.style.backgroundSize = `${canvas.width * scale}px auto`;
+            const baseScale = config.scalePattern || 0.3;
+            const mobileFactor = isMobile ? 0.6 : 1; // Ajustez 0.6 si vous voulez plus petit/grand
+            
+            // La formule magique qui règle le zoom :
+            const finalSize = (canvas.width / dpr) * baseScale * mobileFactor;
+            
+            patternLayer.style.backgroundSize = `${finalSize}px auto`;
             patternLayer.style.transform = `translate(-50%, -50%) ${config.css}`;
         }
     }
