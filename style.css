@@ -423,15 +423,29 @@ details[open] .advanced-summary::after { content: '-'; }
     }
 }
 /* =========================================
-   FIX FINAL & CORRECT : STICKY + ANTI-SCROLL
+   FIX FINAL : STICKY + ORDRE VISUEL
    ========================================= */
 
-/* 1. Sécurité globale : C'est le BODY qui bloque le scroll latéral */
+/* 1. On nettoie les bases pour que le sticky fonctionne */
 html, body {
+    margin: 0; padding: 0;
+    /* IMPORTANT : On retire le 'hidden' global qui casse le sticky sur iPhone */
+    overflow-x: clip; /* 'clip' est plus moderne et ne casse pas le sticky */
+    width: 100%;
+    position: relative;
+}
+
+/* 2. Le conteneur ne doit SURTOUT PAS avoir d'overflow caché */
+.app-wrapper {
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden; /* Empêche le scroll horizontal */
-    margin: 0; padding: 0;
+    box-sizing: border-box;
+    padding: 0 10px 40px 10px;
+    margin: 0 auto;
+    overflow: visible !important; /* Vital pour le sticky */
+    display: flex;
+    flex-wrap: wrap; /* Comportement PC par défaut */
+    gap: 30px;
 }
 
 .site-header {
@@ -440,63 +454,63 @@ html, body {
     padding: 15px 10px;
 }
 
-/* 2. Le conteneur principal doit être "VISIBLE" pour que le sticky marche */
-.app-wrapper {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 0 10px 40px 10px;
-    margin: 0;
-    /* IMPORTANT : On retire overflow ici pour réactiver le sticky */
-    overflow: visible; 
-}
-
-/* 3. C'est le cadre du canvas qui coupe ce qui dépasse (3D) */
+/* 3. Sécurité anti-débordement sur les éléments internes */
 .canvas-container-wrapper {
     width: 100%;
     max-width: 100%;
-    overflow: hidden; /* Coupe les briques qui sortent du cadre */
+    overflow: hidden; /* Coupe le 3D qui dépasse */
     position: relative;
     border-radius: 8px 8px 0 0;
-    /* Centrage */
     display: flex; justify-content: center; align-items: center;
 }
 
-canvas, img { max-width: 100%; height: auto; }
+canvas, img { max-width: 100%; height: auto; display: block; }
 
 /* =========================================
    MOBILE SPÉCIFIQUE
    ========================================= */
 @media (max-width: 900px) {
+    
     .app-wrapper {
-        flex-direction: column-reverse; /* Preview en haut */
+        /* ASTUCE PRO : On n'utilise pas 'column-reverse' car ça casse le sticky.
+           On utilise 'column' normal, et on changera l'ordre plus bas. */
+        flex-direction: column; 
         gap: 0;
         padding: 0;
     }
 
-    /* Le panneau qui doit rester collé en haut */
+    /* Le Panneau de Rendu */
     .preview-panel {
-        /* On remet la propriété -webkit- pour les iPhone */
-        position: -webkit-sticky; 
-        position: sticky;
+        /* L'ASTUCE EST ICI : 'order: -1' force cet élément à passer en PREMIER
+           même s'il est écrit en deuxième dans le HTML. */
+        order: -1;
         
+        /* Sticky properties */
+        position: -webkit-sticky; /* Pour Safari */
+        position: sticky;
         top: 0;
-        z-index: 999;
+        z-index: 1000;
+        
         background: #fff;
         border-bottom: 2px solid #eee;
-        padding-bottom: 5px;
-        margin-bottom: 15px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         
-        /* Gestion de la largeur pour ne pas être coupé */
         width: 100%;
-        min-width: 0; 
-        
-        display: flex; flex-direction: column;
+        min-width: 0;
+        padding-bottom: 5px;
+        margin: 0;
+    }
+
+    /* Le Panneau de Config */
+    .config-panel {
+        order: 2; /* Passe en second */
+        padding: 15px;
+        box-shadow: none;
+        border-radius: 0;
     }
 
     .canvas-container-wrapper {
         min-height: 220px;
-        width: 100%;
         border: none; border-radius: 0;
     }
     
@@ -508,9 +522,4 @@ canvas, img { max-width: 100%; height: auto; }
     .preview-info, .tech-summary { display: none !important; }
     
     .custom-grid-list { grid-template-columns: repeat(2, 1fr); }
-    
-    .config-panel {
-        box-shadow: none;
-        padding: 15px;
-    }
 }
