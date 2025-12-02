@@ -423,45 +423,76 @@ details[open] .advanced-summary::after { content: '-'; }
     }
 }
 /* =========================================
-   FIX FINAL : ANTI-SCROLL HORIZONTAL & LARGEUR
+   FIX FINAL : STRUCTURE & MOBILE
    ========================================= */
 
-/* 1. La règle d'or pour éviter les erreurs de calcul de largeur */
-* {
+/* 1. Base stricte */
+html {
+    width: 100%;
+    overflow-x: hidden; /* Coupe tout dépassement horizontal */
+}
+
+body {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    position: relative;
     box-sizing: border-box;
 }
 
-/* 2. On interdit formellement le dépassement horizontal */
-html, body {
-    max-width: 100%;
-    overflow-x: hidden; /* Coupe tout ce qui dépasse à droite */
-    width: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-/* 3. On force l'en-tête à prendre toute la largeur sans marges bizarres */
+/* 2. En-tête sécurisé */
 .site-header {
-    width: 100%;
-    max-width: 100vw; /* Viewport Width */
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 10px;
-    padding-right: 10px;
+    width: 100%; /* Utiliser % au lieu de vw évite les bugs de scrollbar */
+    box-sizing: border-box; /* Inclut le padding dans la largeur */
+    margin: 0;
+    padding: 15px 10px; /* Padding réduit sur les côtés */
 }
 
-/* 4. Ajustement du conteneur principal sur mobile pour éviter les débords */
+/* 3. Conteneur Principal */
+.app-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 10px 40px 10px;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+/* 4. Le Cadre de prévisualisation (Empêche le motif de sortir) */
+.canvas-container-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden; /* C'est ICI que le scroll horizontal est tué */
+    position: relative;
+    border-radius: 8px 8px 0 0;
+}
+
+/* Images et Canvas réactifs */
+canvas, img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* 5. Ajustements Mobile Spécifiques */
 @media (max-width: 900px) {
     .app-wrapper {
-        width: 100%;
-        max-width: 100%;
-        padding-left: 10px; /* On réduit les marges internes sur mobile */
-        padding-right: 10px;
-        margin: 0;
+        padding: 0; /* On colle aux bords sur mobile */
     }
     
-    /* On s'assure que le canvas ne pousse pas les murs */
-    canvas, .canvas-container-wrapper {
-        max-width: 100%;
+    .config-panel {
+        border-radius: 0; /* Plus carré sur mobile */
+        box-shadow: none;
+    }
+
+    .preview-panel {
+        width: 100%;
+        margin: 0;
+        top: 0;
+    }
+    
+    /* On force le header à ne pas déborder */
+    .site-header h1 {
+        font-size: 1.2rem; /* Titre un peu plus petit sur mobile */
     }
 }

@@ -166,7 +166,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const textureUrl = canvas.toDataURL();
             patternLayer.style.backgroundImage = `url(${textureUrl})`;
             
-            const scale = config.scalePattern || 0.3;
+            // --- CORRECTION ZOOM MOBILE ---
+            // On détecte si l'écran est petit (mobile)
+            const isMobile = window.innerWidth <= 900;
+            
+            // Si mobile, on réduit l'échelle à 50% de la normale (0.5) pour "dézoomer"
+            // Sinon on garde 1 (100%)
+            const mobileFactor = isMobile ? 0.5 : 1.0; 
+
+            // On applique ce facteur au calcul
+            const scale = (config.scalePattern || 0.3) * mobileFactor;
+            
             patternLayer.style.backgroundSize = `${canvas.width * scale}px auto`;
             patternLayer.style.transform = `translate(-50%, -50%) ${config.css}`;
         }
