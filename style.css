@@ -85,6 +85,7 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
     justify-content: flex-start;
     height: 100px; /* Hauteur fixe */
     position: relative;
+    overflow: hidden; /* Empêche l'image zoomée de sortir du cadre */
 }
 .custom-option:hover { transform: translateY(-3px); border-color: #ccc; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 .custom-option:active { transform: scale(0.95); }
@@ -101,7 +102,12 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
 /* STYLE SPÉCIFIQUE POUR LES VIGNETTES COULEURS */
 #select-couleur .custom-option img {
     height: 70px; 
-    object-fit: cover; 
+    width: 100%; /* Force la largeur totale */
+    object-fit: cover; /* Remplit bien la case */
+    
+    /* --- C'EST ICI QUE VOUS RÉGLEZ L'ÉCHELLE --- */
+    transform: scale(1.5); /* 1.5 = Zoom à 150%. Essayez 1.2, 1.8, 2.0 selon votre goût */
+    transform-origin: center center; /* On zoome vers le milieu de l'image */
 }
 
 .custom-option span { font-size: 0.75rem; line-height: 1.2; color: #555; font-weight: 500; }
@@ -452,6 +458,15 @@ html, body {
     width: 100%;
     box-sizing: border-box;
     padding: 15px 10px;
+    background: var(--panel-bg); /* Fond blanc */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Petite ombre */
+    
+    /* C'EST ICI QUE LA MAGIE DU CENTRAGE OPÈRE : */
+    display: flex;
+    flex-direction: column; /* Empile le logo au-dessus du titre */
+    align-items: center;    /* Centre tout horizontalement */
+    justify-content: center;
+    text-align: center;     /* Assure que le texte du titre est centré aussi */
 }
 
 /* 3. Sécurité anti-débordement sur les éléments internes */
