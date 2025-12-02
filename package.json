@@ -13,7 +13,7 @@
     "appId": "com.biallais.configurateur",
     "win": {
       "target": "nsis",
-      "icon": "biallais_logo 1.png" 
+      "icon": "icon.png" 
     }
   },
   "devDependencies": {
