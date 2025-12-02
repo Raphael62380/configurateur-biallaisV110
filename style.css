@@ -423,71 +423,62 @@ details[open] .advanced-summary::after { content: '-'; }
     }
 }
 /* =========================================
-   FIX FINAL : STRUCTURE & MOBILE
+   FIX FINAL & CORRECT : STICKY + ANTI-SCROLL
    ========================================= */
 
-/* 1. Base stricte */
-html {
-    width: 100%;
-    overflow-x: hidden; /* Coupe tout dépassement horizontal */
-}
-
-body {
+/* 1. Sécurité globale : C'est le BODY qui bloque le scroll latéral */
+html, body {
     width: 100%;
     max-width: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    position: relative;
-    box-sizing: border-box;
+    overflow-x: hidden; /* Empêche le scroll horizontal */
+    margin: 0; padding: 0;
 }
 
-/* 2. En-tête sécurisé */
 .site-header {
-    width: 100%; /* Utiliser % au lieu de vw évite les bugs de scrollbar */
-    box-sizing: border-box; /* Inclut le padding dans la largeur */
-    margin: 0;
-    padding: 15px 10px; /* Padding réduit sur les côtés */
+    width: 100%;
+    box-sizing: border-box;
+    padding: 15px 10px;
 }
 
-/* 3. Conteneur Principal */
+/* 2. Le conteneur principal doit être "VISIBLE" pour que le sticky marche */
 .app-wrapper {
     width: 100%;
     box-sizing: border-box;
     padding: 0 10px 40px 10px;
     margin: 0;
-    overflow-x: hidden;
+    /* IMPORTANT : On retire overflow ici pour réactiver le sticky */
+    overflow: visible; 
 }
 
-/* 4. Le Cadre de prévisualisation (Empêche le motif de sortir) */
+/* 3. C'est le cadre du canvas qui coupe ce qui dépasse (3D) */
 .canvas-container-wrapper {
     width: 100%;
     max-width: 100%;
-    overflow: hidden; /* C'est ICI que le scroll horizontal est tué */
+    overflow: hidden; /* Coupe les briques qui sortent du cadre */
     position: relative;
     border-radius: 8px 8px 0 0;
+    /* Centrage */
+    display: flex; justify-content: center; align-items: center;
 }
 
-/* Images et Canvas réactifs */
-canvas, img {
-    max-width: 100%;
-    height: auto;
-}
+canvas, img { max-width: 100%; height: auto; }
 
-/* 5. Ajustements Mobile Spécifiques */
 /* =========================================
-   MOBILE & TABLETTE (CORRECTION FINALE)
+   MOBILE SPÉCIFIQUE
    ========================================= */
 @media (max-width: 900px) {
     .app-wrapper {
         flex-direction: column-reverse; /* Preview en haut */
         gap: 0;
-        padding: 0; /* On colle aux bords */
+        padding: 0;
     }
 
-    /* Le panneau de prévisualisation devient collant en haut */
+    /* Le panneau qui doit rester collé en haut */
     .preview-panel {
+        /* On remet la propriété -webkit- pour les iPhone */
+        position: -webkit-sticky; 
         position: sticky;
+        
         top: 0;
         z-index: 999;
         background: #fff;
@@ -496,43 +487,30 @@ canvas, img {
         margin-bottom: 15px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         
-        /* C'EST ICI LA CORRECTION MAGIQUE : */
-        width: 100%;       /* Prend toute la largeur dispo */
-        min-width: 0;      /* AUTORISE à être plus petit que 400px */
-        max-width: 100vw;  /* Ne dépasse jamais l'écran */
+        /* Gestion de la largeur pour ne pas être coupé */
+        width: 100%;
+        min-width: 0; 
         
-        max-height: 50vh; 
-        display: flex;
-        flex-direction: column;
+        display: flex; flex-direction: column;
     }
 
-    /* On s'assure que le canvas peut rétrécir si besoin */
     .canvas-container-wrapper {
         min-height: 220px;
-        flex: 1;
-        width: 100%;      /* Important */
-        max-width: 100%;  /* Important */
-        border: none;
-        border-radius: 0;
+        width: 100%;
+        border: none; border-radius: 0;
     }
     
     .preview-toolbar {
         padding: 5px 10px;
-        border-radius: 0;
-        border-top: 1px solid #eee;
+        border-radius: 0; border-top: 1px solid #eee;
     }
     
-    .preview-info, .tech-summary {
-        display: none !important; 
-    }
+    .preview-info, .tech-summary { display: none !important; }
     
-    .custom-grid-list { 
-        grid-template-columns: repeat(2, 1fr); 
-    }
+    .custom-grid-list { grid-template-columns: repeat(2, 1fr); }
     
-    /* On ajuste le header pour qu'il ne force pas la largeur */
-    .site-header {
-        width: 100%;
-        padding: 15px 5px; /* Padding réduit */
+    .config-panel {
+        box-shadow: none;
+        padding: 15px;
     }
 }
