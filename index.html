@@ -6,6 +6,7 @@
     <title>Configurateur Biallais Industries</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#28a745">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -31,42 +32,34 @@
                         <img src="vignette_p1.png" onerror="this.src='https://placehold.co/100x60?text=Bloc'">
                         <span>Bloc 19x19x39</span>
                     </div>
-                    
                     <div class="custom-option" data-value="p2">
                         <img src="vignette_p2.png" onerror="this.src='https://placehold.co/100x60?text=Maxi'">
                         <span>Bloc 15x19x39</span>
                     </div>
-
                     <div class="custom-option" data-value="p3">
                         <img src="vignette_p3.png" onerror="this.src='https://placehold.co/100x60?text=Brique'">
                         <span>Bloc 9x19x39</span>
                     </div>
-
                     <div class="custom-option" data-value="p4">
                         <img src="vignette_p4.png" onerror="this.src='https://placehold.co/100x60?text=Allongée'">
                         <span>Maxibrique 6x22x22</span>
                     </div>
-
                     <div class="custom-option" data-value="p5">
                         <img src="vignette_p5.png" onerror="this.src='https://placehold.co/100x60?text=P5'">
                         <span>Brique 6x10,5x22</span>
                     </div>
-
                     <div class="custom-option" data-value="p6">
                         <img src="vignette_p6.png" onerror="this.src='https://placehold.co/100x60?text=Plaq+6x22'">
                         <span>Plaquette 6x2x22</span>
                     </div>
-
                     <div class="custom-option" data-value="p7">
                         <img src="vignette_p7.png" onerror="this.src='https://placehold.co/100x60?text=P7'">
                         <span>Maxibrique 19x09x24</span>
                     </div>
-
                     <div class="custom-option" data-value="p8">
                         <img src="vignette_p8.png" onerror="this.src='https://placehold.co/100x60?text=P8'">
                         <span>Brique allongée 6x11x44</span>
                     </div>
-
                     <div class="custom-option" data-value="p9">
                         <img src="vignette_p9.png" onerror="this.src='https://placehold.co/100x60?text=Plaq+Long'">
                         <span>Plaquette allongée 6x1,8x44</span>
@@ -75,15 +68,13 @@
                 <div id="info-epaisseur" class="info-box" style="display:none;"></div>
             </div>
 
-           <div class="config-section">
+            <div class="config-section">
                 <label class="section-title">2. Couleur du/des produit(s)</label>
                 <p class="section-instruction">Sélectionner votre (ou vos) couleur(s)</p>
                 
                 <div id="select-couleur">
-                    
                     <div class="standard-colors-wrapper">
                         <span class="standard-colors-label">Coloris Standards</span>
-                        
                         <div class="custom-grid-list multi-choice">
                             <div class="custom-option" data-value="blanc"><img src="vignette_blanc.png" onerror="this.style.backgroundColor='#ecf0f1'"><span>Blanc</span></div>
                             <div class="custom-option" data-value="tonpierre"><img src="vignette_tonpierre.png" onerror="this.style.backgroundColor='#e6d8ad'"><span>Ton Pierre</span></div>
@@ -106,13 +97,12 @@
                             <div class="custom-option" data-value="vert"><img src="vignette_vert.png" onerror="this.style.backgroundColor='#2ecc71'"><span>Vert</span></div>
                         </div>
                     </div>
-
-                </div> <div id="container-color-dist" style="display:none; margin-top: 15px; background: #f8f9fa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
+                </div> 
+                
+                <div id="container-color-dist" style="display:none; margin-top: 15px; background: #f8f9fa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
                     <label class="sub-label" style="margin-bottom: 8px;">Répartition des couleurs en pourcentage :</label>
-                    <div id="dynamic-sliders-container">
-                    </div>
+                    <div id="dynamic-sliders-container"></div>
                 </div>
-            
             </div> 
             
             <div class="config-section"> 
@@ -135,6 +125,57 @@
                     <span><strong>Astuce :</strong> Sélectionnez "Aspect Roc" pour débloquer les options de répartition.</span>
                 </div>
 
+                <div id="container-roc-options" style="display:none; margin-top:20px; border-top: 1px dashed #eee; padding-top: 15px;">
+                    <label class="sub-label">Forcer une ligne spécifique <span id="info-max-lines" style="font-weight:normal; color:#666; font-size:0.85rem;"></span> :</label>
+                    <div class="rule-builder" style="flex-direction: column; align-items: stretch;">
+                        <div style="display: flex; gap: 5px;">
+                            <input type="number" id="new-line-number" min="1" placeholder="N°" class="form-control small-input" style="width: 70px;">
+                            
+                            <select id="new-line-finish" class="form-control small-input" style="width: 80px;">
+                                <option value="roc">Roc</option>
+                                <option value="lisse">Lisse</option>
+                            </select>
+                            
+                            <select id="new-line-color" class="form-control small-input" style="flex:1;">
+                                <option value="">Couleur (Aléatoire)</option>
+                                <option value="blanc">Blanc</option>
+                                <option value="tonpierre">Ton Pierre</option>
+                                <option value="jaune">Jaune</option>
+                                <option value="saumon">Saumon</option>
+                                <option value="rouge">Rouge</option>
+                                <option value="chocolat">Chocolat</option>
+                                <option value="brun">Brun</option>
+                                <option value="grisclair">Gris Clair</option>
+                                <option value="grisfonce">Gris Foncé</option>
+                                <option value="anthracite">Anthracite</option>
+                                <option value="superblanc">Super Blanc</option>
+                                <option value="bleu">Bleu</option>
+                                <option value="vert">Vert</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; gap: 5px; margin-top: 5px;">
+                            <select id="new-line-joint" class="form-control small-input">
+                                <option value="">Joint par défaut (Global)</option>
+                                <option value="joint_grisclair.png">Gris Clair</option>
+                                <option value="joint_blanc.png">Blanc</option>
+                                <option value="joint_superblanc.png">Super Blanc</option>
+                                <option value="joint_tonpierre.png">Ton Pierre</option>
+                                <option value="joint_saumon.png">Saumon</option>
+                                <option value="joint_rouge.png">Rouge</option>
+                                <option value="joint_jaune.png">Jaune</option>
+                                <option value="joint_brun.png">Brun</option>
+                                <option value="joint_chocolat.png">Chocolat</option>
+                                <option value="joint_grisfonce.png">Gris Foncé</option>
+                                <option value="joint_anthracite.png">Anthracite</option>
+                            </select>
+                            
+                            <button id="btn-add-rule" class="btn-mini" style="width: 100%; font-weight:bold; background-color: #28a745;">AJOUTER</button>
+                        </div>
+                    </div>
+                    <div id="active-rules-container" class="tags-container" style="margin-top:10px;"></div>
+                </div>
+
                 <div id="wrapper-repartition" style="display:none; margin-top: 15px; background: #f1f3f5; padding: 10px; border-radius: 6px;">
                     <label class="sub-label">Répartition du "Roc" (aléatoire) : <span id="slider-roc-valeur">0%</span></label>
                     <div class="slider-container">
@@ -143,11 +184,9 @@
                 </div>
             </div>
 
-
             <div class="config-section">
                 <label class="section-title">4. Couleur du Joint</label>
                 <p class="section-instruction">Sélectionner votre couleur de joint</p>
-
                 <select id="select-joint" class="form-control">
                     <option value="joint_grisclair.png">Gris Clair (Standard)</option>
                     <option value="joint_blanc.png">Blanc</option>
@@ -165,9 +204,7 @@
 
             <details class="advanced-settings-container">
                 <summary class="advanced-summary">⚙️ Paramètres Avancés (Appareillage, Joints)</summary>
-                
                 <div class="advanced-content">
-                    
                     <div class="config-section">
                         <label class="sub-label">Appareillage :</label>
                         <select id="select-appareillage" class="form-control">
@@ -197,7 +234,7 @@
                             <span id="slider-joint-v-valeur">10 mm</span>
                         </div>
                     </div>
-                    </div>
+                </div>
             </details>
 
             <button id="genererBouton" class="btn-primary">Mettre à jour le rendu</button>
@@ -216,7 +253,6 @@
         </div>
 
         <div class="preview-panel">
-            
             <div class="canvas-container-wrapper">
                 <div id="loading-overlay" class="hidden">
                     <div class="spinner"></div>

@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 0. VERSION
     // ==========================================
-    const APP_VERSION = "v1.1.0 (Dynamic Rows)"; 
+    const APP_VERSION = "v1.3.0 (Final Pro)"; 
     
     const versionDiv = document.getElementById('app-version');
     if(versionDiv) {
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 1. UI ELEMENTS & VARIABLES
     // ==========================================
-    let autoUpdateTimer = null; // Variable pour le timer anti-lag
+    let autoUpdateTimer = null; 
 
     const bouton = document.getElementById('genererBouton');
     const canvas = document.getElementById('apercuCanvas');
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(el) {
             el.addEventListener('input', () => {
                 updateUIValues();
-                if (el === sliderJointH) updateMaxRows(); // Recalcul des lignes si le joint change
+                if (el === sliderJointH) updateMaxRows(); 
                 triggerAutoUpdate();
             });
             el.addEventListener('change', () => {
@@ -206,21 +206,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. UI LOGIC
     // ==========================================
     
-    // --- NOUVELLE FONCTION POUR CALCULER LES LIGNES DISPONIBLES ---
+    // --- CALCUL DES LIGNES DISPONIBLES ---
     function updateMaxRows() {
         const produitVal = getSingleValue(containerProduit);
         const config = PRODUITS_CONFIG[produitVal];
-        
-        // On récupère la hauteur du joint (si slider existe, sinon 10 par défaut)
         const jointH = sliderJointH ? parseInt(sliderJointH.value) : 10;
         
         if (config) {
-            // Hauteur d'un module = Hauteur brique + Joint
             const moduleH = config.dims.hauteur + jointH;
-            // Nombre de lignes total dans la zone cible (1600mm)
             const maxRows = Math.ceil(HAUTEUR_CIBLE_MM / moduleH);
             
-            // Mise à jour de l'affichage
             const spanInfo = document.getElementById('info-max-lines');
             const inputNum = document.getElementById('new-line-number');
             
@@ -276,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-function renderRules() {
+    function renderRules() {
         if (!rulesContainer) return;
         rulesContainer.innerHTML = '';
         if (rulesData.length === 0) {
@@ -293,13 +288,13 @@ function renderRules() {
         rulesData.forEach((rule, index) => {
             const tag = document.createElement('div');
             tag.className = 'rule-tag';
-            const finishLabel = rule.finish.charAt(0).toUpperCase() + rule.finish.slice(1);
+            
+            const finishLabel = (rule.finish === 'roc') ? 'Roc' : 'Lisse';
             let text = `L${rule.row} : ${finishLabel}`;
+            
             if (rule.color) {
                 const cLabel = colorLabels[rule.color] || rule.color;
-                text += ` : ${cLabel} (Roc)`;
-            } else {
-                text += ` : Roc (Aléatoire)`;
+                text += ` (${cLabel})`;
             }
             
             tag.innerHTML = `<span>${text}</span> <span class="remove-tag" data-index="${index}" title="Supprimer" style="cursor:pointer;color:red;font-weight:bold;">&times;</span>`;
@@ -336,7 +331,7 @@ function renderRules() {
                 updateEpaisseurText(val);
                 checkRocAvailability(val);
                 checkVerticalJointLimit(val);
-                updateMaxRows(); // Init Calcul Lignes
+                updateMaxRows(); 
             }
         }
 
@@ -351,7 +346,7 @@ function renderRules() {
                 updateEpaisseurText(val);
                 checkRocAvailability(val);
                 checkVerticalJointLimit(val);
-                updateMaxRows(); // Recalcul Lignes au clic
+                updateMaxRows(); 
             }
             triggerAutoUpdate(); 
         });
@@ -384,15 +379,12 @@ function renderRules() {
         const isRoc = rocOption && rocOption.classList.contains('selected');
         const isLisse = lisseOption && lisseOption.classList.contains('selected');
         
-        // --- NOUVEAU : RÉINITIALISATION AUTOMATIQUE ---
-        // Si l'aspect ROC n'est PAS sélectionné, mais qu'il y a des règles enregistrées :
-        // On supprime tout pour repartir à zéro.
+        // RESET AUTO SI ROC DÉCOCHÉ
         if (!isRoc && rulesData.length > 0) {
-            rulesData = [];      // Vide la mémoire
-            renderRules();       // Vide l'affichage des étiquettes
-            triggerAutoUpdate(); // Met à jour le visuel immédiatement
+            rulesData = [];      
+            renderRules();       
+            triggerAutoUpdate(); 
         }
-        // ----------------------------------------------
 
         if(rocOption.classList.contains('disabled')) {
              if(rocDistributionWrapper) rocDistributionWrapper.style.display = 'none';
@@ -400,7 +392,6 @@ function renderRules() {
              if (rocDistributionWrapper) rocDistributionWrapper.style.display = (isRoc && isLisse) ? 'block' : 'none';
         }
         
-        // --- LOGIQUE D'AFFICHAGE DU BLOC ROC OPTIONS ---
         if (containerRocOptions) {
             if (isRoc && !rocOption.classList.contains('disabled')) {
                 containerRocOptions.style.display = 'block';

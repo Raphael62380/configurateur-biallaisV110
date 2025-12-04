@@ -11,7 +11,7 @@
 /* 1. Base stricte pour éviter le scroll horizontal */
 html, body {
     margin: 0; padding: 0;
-    overflow-x: clip; /* Empêche le scroll latéral sans casser le sticky */
+    overflow-x: clip; 
     width: 100%;
     position: relative;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -57,12 +57,11 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
     overflow: visible !important; 
 }
 
-/* --- COLONNE GAUCHE (CONFIG) : FIXÉE A 340px --- */
+/* --- COLONNE GAUCHE (CONFIG) : FIXÉE A 700px --- */
 .config-panel {
-    /* On fixe la largeur pour laisser de la place au rendu */
-    flex: 0 0 600px;
-    width: 600px;
-    max-width: 600px;
+    flex: 0 0 700px;
+    width: 700px;
+    max-width: 700px;
     
     background: var(--panel-bg);
     padding: 20px;
@@ -108,7 +107,7 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
     justify-content: flex-start;
     height: 100px;
     position: relative;
-    overflow: hidden; /* Empêche l'image zoomée de sortir */
+    overflow: hidden; 
 }
 .custom-option:hover { transform: translateY(-3px); border-color: #ccc; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 .custom-option:active { transform: scale(0.95); }
@@ -127,7 +126,7 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
     height: 70px; 
     width: 100%; 
     object-fit: cover; 
-    transform: scale(1.5); /* Zoom texture */
+    transform: scale(1.5); 
     transform-origin: center center;
 }
 
@@ -242,9 +241,7 @@ details[open] .advanced-summary::after { content: '-'; }
 
 /* --- COLONNE DROITE (PREVIEW) : PREND TOUT LE RESTE --- */
 .preview-panel { 
-    /* 'flex: 1' force cette colonne à occuper tout l'espace disponible */
     flex: 1; 
-    
     min-width: 400px; 
     position: sticky; top: 20px; 
 }
@@ -413,7 +410,7 @@ details[open] .advanced-summary::after { content: '-'; }
 
     /* --- Le Panneau de Rendu (Sticky en haut) --- */
     .preview-panel {
-        order: -1; /* Passe visuellement en premier */
+        order: -1; 
         
         position: -webkit-sticky; 
         position: sticky;
@@ -437,7 +434,7 @@ details[open] .advanced-summary::after { content: '-'; }
         box-shadow: none;
         border-radius: 0;
         
-        /* IMPORTANT : On annule la largeur fixe de 340px du mode bureau */
+        /* IMPORTANT : On annule la largeur fixe de 400px du mode bureau */
         flex: auto;
         width: 100%;
         max-width: 100%;
