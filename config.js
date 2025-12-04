@@ -293,15 +293,13 @@ function renderRules() {
         rulesData.forEach((rule, index) => {
             const tag = document.createElement('div');
             tag.className = 'rule-tag';
-            
-            // CORRECTION ICI : On affiche la finition choisie (Roc ou Lisse)
-            const finishLabel = (rule.finish === 'roc') ? 'Roc' : 'Lisse';
-            
+            const finishLabel = rule.finish.charAt(0).toUpperCase() + rule.finish.slice(1);
             let text = `L${rule.row} : ${finishLabel}`;
-            
             if (rule.color) {
                 const cLabel = colorLabels[rule.color] || rule.color;
-                text += ` (${cLabel})`;
+                text += ` : ${cLabel} (Roc)`;
+            } else {
+                text += ` : Roc (Aléatoire)`;
             }
             
             tag.innerHTML = `<span>${text}</span> <span class="remove-tag" data-index="${index}" title="Supprimer" style="cursor:pointer;color:red;font-weight:bold;">&times;</span>`;
