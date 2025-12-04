@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#28a745">
-<link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="theme-color" content="#28a745">
+    <link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
 
@@ -113,7 +113,10 @@
                     </div>
                 </div>
             
-            </div> <div class="config-section"> <label class="section-title">3. Finition(s)</label>
+            </div> 
+            
+            <div class="config-section"> 
+                <label class="section-title">3. Finition(s)</label>
                 <p class="section-instruction">Sélectionner votre (ou vos) aspect(s)</p>
                 
                 <div id="container-finition" class="custom-select-list multi-choice">
@@ -129,9 +132,58 @@
 
                 <div id="msg-astuce-roc" class="info-box" style="display:none; margin-top:10px; background-color: #e3f2fd; border-color: #b3e5fc; border-left-color: #2196f3; color: #084298;">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2196f3" width="24" height="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                    <span><strong>Astuce :</strong> Vous souhaitez intégrer une ou plusieurs lignes en <em>Roc</em> précisemment ? C'est possible plus bas dans <strong>⚙️ Paramètres Avancés > Forcer une ligne</strong> (dans ce cas, ne sélectionnez pas Aspect Roc ci-dessus).</span>
+                    <span><strong>Astuce :</strong> Sélectionnez "Aspect Roc" pour débloquer les options de répartition.</span>
                 </div>
 
+                <div id="container-roc-options" style="display:none; margin-top:20px; border-top: 1px dashed #eee; padding-top: 15px;">
+                    <label class="sub-label">Forcer une ligne en Aspect Roc <span id="info-max-lines" style="font-weight:normal; color:#666; font-size:0.85rem;"></span> :</label>
+                    <div class="rule-builder" style="flex-direction: column; align-items: stretch;">
+                        <div style="display: flex; gap: 5px;">
+                            <input type="number" id="new-line-number" min="1" placeholder="N°" class="form-control small-input" style="width: 80px;">
+                            
+                            <select id="new-line-finish" class="form-control small-input" style="display:none;">
+                                <option value="roc" selected>Roc</option>
+                            </select>
+                            
+                            <select id="new-line-color" class="form-control small-input" style="flex:1;">
+                                <option value="">Couleur (Aléatoire si vide)</option>
+                                <option value="blanc">Blanc</option>
+                                <option value="tonpierre">Ton Pierre</option>
+                                <option value="jaune">Jaune</option>
+                                <option value="saumon">Saumon</option>
+                                <option value="rouge">Rouge</option>
+                                <option value="chocolat">Chocolat</option>
+                                <option value="brun">Brun</option>
+                                <option value="grisclair">Gris Clair</option>
+                                <option value="grisfonce">Gris Foncé</option>
+                                <option value="anthracite">Anthracite</option>
+                                <option value="superblanc">Super Blanc</option>
+                                <option value="bleu">Bleu</option>
+                                <option value="vert">Vert</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; gap: 5px; margin-top: 5px;">
+                            <select id="new-line-joint" class="form-control small-input">
+                                <option value="">Joint par défaut (Global)</option>
+                                <option value="joint_grisclair.png">Gris Clair</option>
+                                <option value="joint_blanc.png">Blanc</option>
+                                <option value="joint_superblanc.png">Super Blanc</option>
+                                <option value="joint_tonpierre.png">Ton Pierre</option>
+                                <option value="joint_saumon.png">Saumon</option>
+                                <option value="joint_rouge.png">Rouge</option>
+                                <option value="joint_jaune.png">Jaune</option>
+                                <option value="joint_brun.png">Brun</option>
+                                <option value="joint_chocolat.png">Chocolat</option>
+                                <option value="joint_grisfonce.png">Gris Foncé</option>
+                                <option value="joint_anthracite.png">Anthracite</option>
+                            </select>
+                            
+                            <button id="btn-add-rule" class="btn-mini" style="width: 100%; font-weight:bold; background-color: #28a745;">AJOUTER LIGNE ROC</button>
+                        </div>
+                    </div>
+                    <div id="active-rules-container" class="tags-container" style="margin-top:10px;"></div>
+                </div>
                 <div id="wrapper-repartition" style="display:none; margin-top: 15px; background: #f1f3f5; padding: 10px; border-radius: 6px;">
                     <label class="sub-label">Répartition du "Roc" (aléatoire) : <span id="slider-roc-valeur">0%</span></label>
                     <div class="slider-container">
@@ -161,7 +213,7 @@
             </div>
 
             <details class="advanced-settings-container">
-                <summary class="advanced-summary">⚙️ Paramètres Avancés (Appareillage, Joints, Règles)</summary>
+                <summary class="advanced-summary">⚙️ Paramètres Avancés (Appareillage, Joints)</summary>
                 
                 <div class="advanced-content">
                     
@@ -194,58 +246,7 @@
                             <span id="slider-joint-v-valeur">10 mm</span>
                         </div>
                     </div>
-
-                    <div id="container-roc-options" style="margin-top:20px;">
-                        <label class="sub-label">Forcer une ligne Horizontale spécifique :</label>
-                        <div class="rule-builder" style="flex-direction: column; align-items: stretch;">
-                            <div style="display: flex; gap: 5px;">
-                                <input type="number" id="new-line-number" min="1" max="50" placeholder="N°" class="form-control small-input" style="width: 60px;">
-                                
-                                <select id="new-line-finish" class="form-control small-input">
-                                    <option value="roc">Roc</option>
-                                    <option value="lisse">Lisse</option>
-                                </select>
-                                
-                                <select id="new-line-color" class="form-control small-input">
-                                    <option value="blanc">Blanc</option>
-                                    <option value="tonpierre">Ton Pierre</option>
-                                    <option value="jaune">Jaune</option>
-                                    <option value="saumon">Saumon</option>
-                                    <option value="rouge">Rouge</option>
-                                    <option value="chocolat">Chocolat</option>
-                                    <option value="brun">Brun</option>
-                                    <option value="grisclair">Gris Clair</option>
-                                    <option value="grisfonce">Gris Foncé</option>
-                                    <option value="anthracite">Anthracite</option>
-                                    <option value="superblanc">Super Blanc</option>
-                                    <option value="bleu">Bleu</option>
-                                    <option value="vert">Vert</option>
-                                </select>
-                            </div>
-                            
-                            <div style="display: flex; gap: 5px; margin-top: 5px;">
-                                <select id="new-line-joint" class="form-control small-input">
-                                    <option value="">Joint par défaut (Global)</option>
-                                    <option value="joint_grisclair.png">Gris Clair</option>
-                                    <option value="joint_blanc.png">Blanc</option>
-                                    <option value="joint_superblanc.png">Super Blanc</option>
-                                    <option value="joint_tonpierre.png">Ton Pierre</option>
-                                    <option value="joint_saumon.png">Saumon</option>
-                                    <option value="joint_rouge.png">Rouge</option>
-                                    <option value="joint_jaune.png">Jaune</option>
-                                    <option value="joint_brun.png">Brun</option>
-                                    <option value="joint_chocolat.png">Chocolat</option>
-                                    <option value="joint_grisfonce.png">Gris Foncé</option>
-                                    <option value="joint_anthracite.png">Anthracite</option>
-                                </select>
-                                
-                                <button id="btn-add-rule" class="btn-mini" style="width: 100%; font-weight:bold;">AJOUTER</button>
-                            </div>
-                        </div>
-                        <div id="active-rules-container" class="tags-container" style="margin-top:10px;"></div>
                     </div>
-
-                </div>
             </details>
 
             <button id="genererBouton" class="btn-primary">Mettre à jour le rendu</button>
