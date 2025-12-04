@@ -57,18 +57,23 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
     overflow: visible !important; 
 }
 
-/* --- COLONNE GAUCHE (CONFIG) : FIXÉE A 700px --- */
+/* --- COLONNE GAUCHE (CONFIG) : PROPORTIONNELLE --- */
 .config-panel {
-    flex: 0 0 700px;
-    width: 700px;
-    max-width: 700px;
+    /* AVANT : flex: 0 0 700px; (Fixe) */
+    
+    /* MAINTENANT : On utilise un pourcentage (30% de la largeur totale) */
+    flex: 0 0 45%;
+    width: 45%;
+    
+    /* On ajoute des sécurités pour que ce soit toujours lisible */
+    min-width: 320px; /* Ne deviendra jamais illisible sur petit écran */
+    max-width: 500px; /* Ne deviendra jamais énorme sur écran géant */
     
     background: var(--panel-bg);
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
-
 .config-section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
 .config-section:last-of-type { border-bottom: none; padding-bottom: 0; }
 
