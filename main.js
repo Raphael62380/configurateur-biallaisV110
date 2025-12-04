@@ -1,54 +1,48 @@
-const { app, BrowserWindow, screen } = require('electron'); // On ajoute 'screen'
+const { app, BrowserWindow, screen } = require('electron');
 const path = require('path');
 
 function createWindow () {
   
-  // 1. On récupère la taille réelle de l'écran de l'utilisateur
+  // 1. On récupère la taille de l'écran pour calculer le zoom
   const primaryDisplay = screen.getPrimaryDisplay();
-  const { width, height } = primaryDisplay.workAreaSize;
+  const { width } = primaryDisplay.workAreaSize;
 
-  // 2. Calcul du facteur de zoom intelligent
-  // On se base sur un écran standard Full HD (1920px de large).
-  // Si l'écran est plus grand (ex: 4K), on zoome.
-  // Si l'écran est plus petit (laptop), on garde l'échelle normale (1.0).
-  
+  // 2. Calcul du zoom (On garde cette logique pour que ce soit lisible sur 4K)
   let zoomFactor = 1.0;
-  
-  // Si l'écran est très large (> 2000px), on applique un zoom pour éviter que tout soit minuscule
   if (width > 2000) {
       zoomFactor = 1.5; 
   } else if (width > 1600) {
       zoomFactor = 1.25;
-  } else {
-      zoomFactor = 1.0; // Pc portable standard
   }
 
-  // Création de la fenêtre
+  // 3. Création de la fenêtre
   const win = new BrowserWindow({
-    width: 1280,
-    height: 800,
+    // Taille de démarrage (fenêtre non maximisée)
+    width: 1400, 
+    height: 900,
+    minWidth: 1024, // On empêche de rendre la fenêtre trop petite
+    minHeight: 768,
+    center: true,   // La fenêtre s'ouvre pile au milieu de l'écran
+    
     icon: path.join(__dirname, 'icon.png'),
+    
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      zoomFactor: zoomFactor // <--- Zoom dynamique appliqué ici
+      zoomFactor: zoomFactor // On applique le zoom calculé
     },
-    autoHideMenuBar: true,
-    show: false // On cache la fenêtre le temps qu'elle charge
+    autoHideMenuBar: true, // Cache le menu "Fichier/Edition"
+    show: false // On attend que ce soit prêt pour afficher
   });
 
-  // 3. On force le mode "Maximisé" (Plein écran fenêtré)
-  win.maximize();
-  win.show(); // On affiche la fenêtre une fois qu'elle est en plein écran
+  // 4. On supprime la ligne win.maximize() pour ne pas être en plein écran
+  // win.maximize(); <--- CETTE LIGNE A ÉTÉ RETIRÉE
+
+  // On affiche la fenêtre directement
+  win.show();
 
   // Chargement du fichier
   win.loadFile('index.html');
-  
-  // Gestion du redimensionnement (Responsive)
-  win.on('resize', () => {
-      // Si l'utilisateur change d'écran en cours de route, on peut ajouter de la logique ici
-      // mais le CSS (flexbox) gère déjà l'adaptation du contenu.
-  });
 }
 
 app.whenReady().then(() => {
