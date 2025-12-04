@@ -372,37 +372,34 @@ document.addEventListener('DOMContentLoaded', () => {
     setupMultiChoice(containerFinition);
     setupMultiChoice(containerCouleur);
 
-    function checkRocVisibility() {
+   function checkRocVisibility() {
         const rocOption = containerFinition.querySelector('.custom-option[data-value="roc"]');
         const lisseOption = containerFinition.querySelector('.custom-option[data-value="lisse"]');
         
         const isRoc = rocOption && rocOption.classList.contains('selected');
         const isLisse = lisseOption && lisseOption.classList.contains('selected');
         
-        // RESET AUTO SI ROC DÉCOCHÉ
-        if (!isRoc && rulesData.length > 0) {
-            rulesData = [];      
-            renderRules();       
-            triggerAutoUpdate(); 
-        }
+        // --- MODIFICATION : ON NE SUPPRIME PLUS LES RÈGLES AUTO ---
+        // (On garde les lignes forcées même si on change de finition principale)
 
+        // Gestion du slider de répartition (Uniquement si Lisse ET Roc sont sélectionnés)
         if(rocOption.classList.contains('disabled')) {
              if(rocDistributionWrapper) rocDistributionWrapper.style.display = 'none';
         } else {
              if (rocDistributionWrapper) rocDistributionWrapper.style.display = (isRoc && isLisse) ? 'block' : 'none';
         }
         
+        // --- MODIFICATION : AFFICHAGE PERMANENT DU BLOC "FORCER UNE LIGNE" ---
+        // Il apparaît maintenant tout le temps (sauf si le produit est invalide), 
+        // que l'on soit en Lisse ou en Roc.
         if (containerRocOptions) {
-            if (isRoc && !rocOption.classList.contains('disabled')) {
-                containerRocOptions.style.display = 'block';
-                updateMaxRows(); 
-            } else {
-                containerRocOptions.style.display = 'none';
-            }
+            containerRocOptions.style.display = 'block';
+            updateMaxRows(); // On s'assure que le calcul des lignes est à jour
         }
         
+        // On cache le message d'astuce car le menu est maintenant toujours visible
         if (msgAstuceRoc) {
-            msgAstuceRoc.style.display = (isLisse && !isRoc) ? 'flex' : 'none';
+            msgAstuceRoc.style.display = 'none';
         }
     }
     
