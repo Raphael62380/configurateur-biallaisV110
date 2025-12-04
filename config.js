@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 0. VERSION
     // ==========================================
-    const APP_VERSION = "v1.2.0 (Dynamic Rows)"; 
+    const APP_VERSION = "v1.1.0 (Dynamic Rows)"; 
     
     const versionDiv = document.getElementById('app-version');
     if(versionDiv) {
