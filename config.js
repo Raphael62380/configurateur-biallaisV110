@@ -1032,3 +1032,58 @@ document.addEventListener('DOMContentLoaded', () => {
     // Premier lancement automatique
     setTimeout(triggerAutoUpdate, 500);
 });
+// ==========================================
+    // 9. LOGIQUE DU RESIZER (VOLET RÉGLABLE)
+    // ==========================================
+    
+    const resizer = document.getElementById('dragMe');
+    const leftSide = document.querySelector('.config-panel');
+    const rightSide = document.querySelector('.preview-panel');
+
+    // La position actuelle de la souris
+    let x = 0;
+    let leftWidth = 0;
+
+    // Fonction quand on clique sur la barre
+    const mouseDownHandler = function(e) {
+        // Obtenir la position actuelle de la souris
+        x = e.clientX;
+        leftWidth = leftSide.getBoundingClientRect().width;
+
+        // Attacher les écouteurs au document
+        document.addEventListener('mousemove', mouseMoveHandler);
+        document.addEventListener('mouseup', mouseUpHandler);
+        
+        // Effet visuel
+        document.body.style.cursor = 'col-resize';
+        resizer.style.borderLeft = '2px solid #007bff';
+    };
+
+    const mouseMoveHandler = function(e) {
+        // Jusqu'où la souris a bougé ?
+        const dx = e.clientX - x;
+        const newWidth = leftWidth + dx;
+        
+        // Limites (Min 300px, Max 50% de l'écran)
+        if (newWidth > 300 && newWidth < window.innerWidth * 0.6) {
+            leftSide.style.width = `${newWidth}px`;
+            // Important pour Flexbox :
+            leftSide.style.flex = `0 0 ${newWidth}px`;
+        }
+    };
+
+    const mouseUpHandler = function() {
+        document.removeEventListener('mousemove', mouseMoveHandler);
+        document.removeEventListener('mouseup', mouseUpHandler);
+        
+        document.body.style.cursor = 'default';
+        resizer.style.borderLeft = 'none';
+        
+        // On relance le dessin si la taille du canvas a changé
+        triggerAutoUpdate();
+    };
+
+    // Attacher l'écouteur si le resizer existe (mode bureau)
+    if (resizer) {
+        resizer.addEventListener('mousedown', mouseDownHandler);
+    }
