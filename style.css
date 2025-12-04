@@ -8,17 +8,30 @@
     --border-color: #dee2e6;
 }
 
-body {
+/* 1. Base stricte pour éviter le scroll horizontal */
+html, body {
+    margin: 0; padding: 0;
+    overflow-x: clip; /* Empêche le scroll latéral sans casser le sticky */
+    width: 100%;
+    position: relative;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
-    margin: 0; padding: 0;
 }
 
+/* 2. En-tête Centré */
 .site-header {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 15px 10px;
     background: var(--panel-bg);
-    padding: 15px 20px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    
+    /* Centrage parfait du logo et du titre */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     margin-bottom: 20px;
 }
@@ -28,21 +41,31 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
 
 /* LAYOUT GLOBAL */
 .app-wrapper {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0 20px 40px;
+    margin: 0 auto;
+    
+    /* Configuration Flex pour les colonnes */
     display: flex;
     flex-wrap: wrap;
-    gap: 30px;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 20px 40px;
     align-items: flex-start;
+    gap: 30px;
+    
+    /* IMPORTANT : Visible pour que le sticky fonctionne sur mobile */
+    overflow: visible !important; 
 }
 
-/* PANNEAU GAUCHE (CONFIG) */
+/* --- COLONNE GAUCHE (CONFIG) : FIXÉE A 340px --- */
 .config-panel {
-    flex: 1;
-    min-width: 320px;
+    /* On fixe la largeur pour laisser de la place au rendu */
+    flex: 0 0 600px;
+    width: 600px;
+    max-width: 600px;
+    
     background: var(--panel-bg);
-    padding: 25px;
+    padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
@@ -83,9 +106,9 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    height: 100px; /* Hauteur fixe */
+    height: 100px;
     position: relative;
-    overflow: hidden; /* Empêche l'image zoomée de sortir du cadre */
+    overflow: hidden; /* Empêche l'image zoomée de sortir */
 }
 .custom-option:hover { transform: translateY(-3px); border-color: #ccc; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 .custom-option:active { transform: scale(0.95); }
@@ -99,15 +122,13 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
     background-color: #f9f9f9;
 }
 
-/* STYLE SPÉCIFIQUE POUR LES VIGNETTES COULEURS */
+/* STYLE SPÉCIFIQUE POUR LES VIGNETTES COULEURS (ZOOM) */
 #select-couleur .custom-option img {
     height: 70px; 
-    width: 100%; /* Force la largeur totale */
-    object-fit: cover; /* Remplit bien la case */
-    
-    /* --- C'EST ICI QUE VOUS RÉGLEZ L'ÉCHELLE --- */
-    transform: scale(1.5); /* 1.5 = Zoom à 150%. Essayez 1.2, 1.8, 2.0 selon votre goût */
-    transform-origin: center center; /* On zoome vers le milieu de l'image */
+    width: 100%; 
+    object-fit: cover; 
+    transform: scale(1.5); /* Zoom texture */
+    transform-origin: center center;
 }
 
 .custom-option span { font-size: 0.75rem; line-height: 1.2; color: #555; font-weight: 500; }
@@ -219,9 +240,11 @@ details[open] .advanced-summary::after { content: '-'; }
 }
 .btn-secondary:hover { background-color: #5a6268; }
 
-/* PREVIEW PANEL */
+/* --- COLONNE DROITE (PREVIEW) : PREND TOUT LE RESTE --- */
 .preview-panel { 
-    flex: 1.5; 
+    /* 'flex: 1' force cette colonne à occuper tout l'espace disponible */
+    flex: 1; 
+    
     min-width: 400px; 
     position: sticky; top: 20px; 
 }
@@ -238,7 +261,7 @@ details[open] .advanced-summary::after { content: '-'; }
     display: flex; 
     align-items: center; 
     justify-content: center;
-    overflow: hidden; 
+    overflow: hidden; /* Coupe le 3D qui dépasse */
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
@@ -378,130 +401,21 @@ details[open] .advanced-summary::after { content: '-'; }
 }
 
 /* =========================================
-   MOBILE & TABLETTE (OPTIMISÉ)
-   ========================================= */
-
-@media (max-width: 900px) {
-    .app-wrapper {
-        flex-direction: column-reverse; /* Preview en haut */
-        gap: 0;
-    }
-
-    /* Le panneau de prévisualisation devient collant en haut */
-    .preview-panel {
-        position: sticky;
-        top: 0;
-        z-index: 999;
-        background: #fff;
-        border-bottom: 2px solid #eee;
-        padding-bottom: 5px;
-        margin-bottom: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        
-        /* Limite la hauteur sur mobile pour voir les options en dessous */
-        max-height: 50vh; 
-        display: flex;
-        flex-direction: column;
-    }
-
-    .canvas-container-wrapper {
-        min-height: 220px;
-        flex: 1;
-        border: none;
-        border-radius: 0;
-    }
-    
-    /* On garde la toolbar mais on réduit le padding */
-    .preview-toolbar {
-        padding: 5px 10px;
-        border-radius: 0;
-        border-top: 1px solid #eee;
-    }
-    
-    /* On cache les infos techniques pour gagner de la place */
-    .preview-info, .tech-summary {
-        display: none !important; 
-    }
-    
-    /* Passage en 2 colonnes pour les grilles d'options sur mobile */
-    .custom-grid-list { 
-        grid-template-columns: repeat(2, 1fr); 
-    }
-}
-/* =========================================
-   FIX FINAL : STICKY + ORDRE VISUEL
-   ========================================= */
-
-/* 1. On nettoie les bases pour que le sticky fonctionne */
-html, body {
-    margin: 0; padding: 0;
-    /* IMPORTANT : On retire le 'hidden' global qui casse le sticky sur iPhone */
-    overflow-x: clip; /* 'clip' est plus moderne et ne casse pas le sticky */
-    width: 100%;
-    position: relative;
-}
-
-/* 2. Le conteneur ne doit SURTOUT PAS avoir d'overflow caché */
-.app-wrapper {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    padding: 0 10px 40px 10px;
-    margin: 0 auto;
-    overflow: visible !important; /* Vital pour le sticky */
-    display: flex;
-    flex-wrap: wrap; /* Comportement PC par défaut */
-    gap: 30px;
-}
-
-.site-header {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 15px 10px;
-    background: var(--panel-bg); /* Fond blanc */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Petite ombre */
-    
-    /* C'EST ICI QUE LA MAGIE DU CENTRAGE OPÈRE : */
-    display: flex;
-    flex-direction: column; /* Empile le logo au-dessus du titre */
-    align-items: center;    /* Centre tout horizontalement */
-    justify-content: center;
-    text-align: center;     /* Assure que le texte du titre est centré aussi */
-}
-
-/* 3. Sécurité anti-débordement sur les éléments internes */
-.canvas-container-wrapper {
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden; /* Coupe le 3D qui dépasse */
-    position: relative;
-    border-radius: 8px 8px 0 0;
-    display: flex; justify-content: center; align-items: center;
-}
-
-canvas, img { max-width: 100%; height: auto; display: block; }
-
-/* =========================================
-   MOBILE SPÉCIFIQUE
+   MOBILE & TABLETTE (OPTIMISÉ + STICKY)
    ========================================= */
 @media (max-width: 900px) {
     
     .app-wrapper {
-        /* ASTUCE PRO : On n'utilise pas 'column-reverse' car ça casse le sticky.
-           On utilise 'column' normal, et on changera l'ordre plus bas. */
         flex-direction: column; 
         gap: 0;
         padding: 0;
     }
 
-    /* Le Panneau de Rendu */
+    /* --- Le Panneau de Rendu (Sticky en haut) --- */
     .preview-panel {
-        /* L'ASTUCE EST ICI : 'order: -1' force cet élément à passer en PREMIER
-           même s'il est écrit en deuxième dans le HTML. */
-        order: -1;
+        order: -1; /* Passe visuellement en premier */
         
-        /* Sticky properties */
-        position: -webkit-sticky; /* Pour Safari */
+        position: -webkit-sticky; 
         position: sticky;
         top: 0;
         z-index: 1000;
@@ -516,16 +430,22 @@ canvas, img { max-width: 100%; height: auto; display: block; }
         margin: 0;
     }
 
-    /* Le Panneau de Config */
+    /* --- Le Panneau de Config (En bas) --- */
     .config-panel {
-        order: 2; /* Passe en second */
+        order: 2; 
         padding: 15px;
         box-shadow: none;
         border-radius: 0;
+        
+        /* IMPORTANT : On annule la largeur fixe de 340px du mode bureau */
+        flex: auto;
+        width: 100%;
+        max-width: 100%;
     }
 
     .canvas-container-wrapper {
         min-height: 220px;
+        width: 100%;
         border: none; border-radius: 0;
     }
     
@@ -537,4 +457,6 @@ canvas, img { max-width: 100%; height: auto; display: block; }
     .preview-info, .tech-summary { display: none !important; }
     
     .custom-grid-list { grid-template-columns: repeat(2, 1fr); }
+    
+    canvas, img { max-width: 100%; height: auto; display: block; }
 }

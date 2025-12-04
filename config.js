@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 0. VERSION
     // ==========================================
-    const APP_VERSION = "v1.1.0 Auto-Update"; 
+    const APP_VERSION = "v1.2.0 (Dynamic Rows)"; 
     
     const versionDiv = document.getElementById('app-version');
     if(versionDiv) {
@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const containerColorDist = document.getElementById('container-color-dist');
     const sliderColorDist = document.getElementById('slider-color-dist');
-    const valColorDist = document.getElementById('val-color-dist'); // Si présent
 
     const btnAddRule = document.getElementById('btn-add-rule');
     const inputRow = document.getElementById('new-line-number');
@@ -81,33 +80,26 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 2. AUTO-UPDATE LOGIC (NOUVEAU)
+    // 2. AUTO-UPDATE LOGIC
     // ==========================================
 
-    // Fonction qui lance le compte à rebours
     function triggerAutoUpdate() {
         if (autoUpdateTimer) clearTimeout(autoUpdateTimer);
-        
-        // Petit feedback visuel sur le bouton
         if(bouton) {
             bouton.textContent = "Actualisation...";
             bouton.style.opacity = "0.7";
         }
-
-        // On lance la génération après 500ms d'inactivité
         autoUpdateTimer = setTimeout(() => {
             lancerGenerationMoteur();
         }, 500);
     }
 
-    // Mise à jour immédiate des textes (mm, %) avant le rendu
     function updateUIValues() {
         if(sliderRoc && sliderRocValeur) sliderRocValeur.textContent = sliderRoc.value + '%';
         if(sliderJointH && sliderJointHVal) sliderJointHVal.textContent = sliderJointH.value + ' mm';
         if(sliderJointV && sliderJointVVal) sliderJointVVal.textContent = sliderJointV.value + ' mm';
     }
 
-    // On attache les écouteurs sur les inputs
     const inputsToWatch = [
         selectAppareillage, selectJoint, selectTypeJoint, 
         sliderJointH, sliderJointV, sliderRoc, selectScene
@@ -117,9 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if(el) {
             el.addEventListener('input', () => {
                 updateUIValues();
+                if (el === sliderJointH) updateMaxRows(); // Recalcul des lignes si le joint change
                 triggerAutoUpdate();
             });
-            // Pour les <select>, 'change' est parfois mieux géré que input
             el.addEventListener('change', () => {
                 updateUIValues();
                 triggerAutoUpdate();
@@ -127,20 +119,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Zoom (Pas besoin de re-générer, juste CSS)
     if (zoomSlider) {
         zoomSlider.addEventListener('input', (e) => {
             canvas.style.transform = `scale(${e.target.value})`;
         });
     }
 
-    // Scènes
     if (selectScene && patternLayer) {
         selectScene.addEventListener('change', (e) => {
             updateSceneView(e.target.value);
-            // Pas de triggerAutoUpdate ici car updateSceneView gère l'affichage, 
-            // mais si on veut régénérer la texture pour une nouvelle perspective, on peut décommenter :
-            // triggerAutoUpdate(); 
         });
     }
 
@@ -166,23 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const textureUrl = canvas.toDataURL();
             patternLayer.style.backgroundImage = `url(${textureUrl})`;
             
-            // --- CORRECTION HD / RETINA ---
-            // 1. On récupère le ratio de l'écran (ex: 3 sur iPhone, 1 sur PC vieux)
             const dpr = window.devicePixelRatio || 1;
-            
-            // 2. On détecte si c'est un mobile (petit écran)
             const isMobile = window.innerWidth <= 900;
-
-            // 3. Calcul savant :
-            // - On prend la largeur réelle du canvas
-            // - On divise par le DPR pour remettre à l'échelle humaine (taille logique)
-            // - On applique le scale de la config (0.25)
-            // - Si mobile, on réduit ENCORE un peu (x0.6) pour voir plus de surface
-            
             const baseScale = config.scalePattern || 0.3;
-            const mobileFactor = isMobile ? 0.6 : 1; // Ajustez 0.6 si vous voulez plus petit/grand
-            
-            // La formule magique qui règle le zoom :
+            const mobileFactor = isMobile ? 0.6 : 1; 
             const finalSize = (canvas.width / dpr) * baseScale * mobileFactor;
             
             patternLayer.style.backgroundSize = `${finalSize}px auto`;
@@ -229,8 +203,34 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 4. UI LOGIC (SELECTIONS)
+    // 4. UI LOGIC
     // ==========================================
+    
+    // --- NOUVELLE FONCTION POUR CALCULER LES LIGNES DISPONIBLES ---
+    function updateMaxRows() {
+        const produitVal = getSingleValue(containerProduit);
+        const config = PRODUITS_CONFIG[produitVal];
+        
+        // On récupère la hauteur du joint (si slider existe, sinon 10 par défaut)
+        const jointH = sliderJointH ? parseInt(sliderJointH.value) : 10;
+        
+        if (config) {
+            // Hauteur d'un module = Hauteur brique + Joint
+            const moduleH = config.dims.hauteur + jointH;
+            // Nombre de lignes total dans la zone cible (1600mm)
+            const maxRows = Math.ceil(HAUTEUR_CIBLE_MM / moduleH);
+            
+            // Mise à jour de l'affichage
+            const spanInfo = document.getElementById('info-max-lines');
+            const inputNum = document.getElementById('new-line-number');
+            
+            if (spanInfo) spanInfo.textContent = `(Dispo : 1 à ${maxRows})`;
+            if (inputNum) {
+                inputNum.max = maxRows;
+                inputNum.placeholder = `N° (1-${maxRows})`;
+            }
+        }
+    }
 
     function checkRocAvailability(productId) {
         const rocOption = containerFinition.querySelector('.custom-option[data-value="roc"]');
@@ -272,11 +272,11 @@ document.addEventListener('DOMContentLoaded', () => {
             rulesData.sort((a, b) => a.row - b.row);
             renderRules();
             inputRow.value = ''; inputRow.focus();
-            triggerAutoUpdate(); // Mise à jour auto après ajout de règle
+            triggerAutoUpdate(); 
         });
     }
 
-    function renderRules() {
+function renderRules() {
         if (!rulesContainer) return;
         rulesContainer.innerHTML = '';
         if (rulesData.length === 0) {
@@ -293,12 +293,17 @@ document.addEventListener('DOMContentLoaded', () => {
         rulesData.forEach((rule, index) => {
             const tag = document.createElement('div');
             tag.className = 'rule-tag';
-            const finishLabel = rule.finish.charAt(0).toUpperCase() + rule.finish.slice(1);
+            
+            // CORRECTION ICI : On affiche la finition choisie (Roc ou Lisse)
+            const finishLabel = (rule.finish === 'roc') ? 'Roc' : 'Lisse';
+            
             let text = `L${rule.row} : ${finishLabel}`;
+            
             if (rule.color) {
                 const cLabel = colorLabels[rule.color] || rule.color;
                 text += ` (${cLabel})`;
             }
+            
             tag.innerHTML = `<span>${text}</span> <span class="remove-tag" data-index="${index}" title="Supprimer" style="cursor:pointer;color:red;font-weight:bold;">&times;</span>`;
             rulesContainer.appendChild(tag);
         });
@@ -306,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', (e) => {
                 rulesData.splice(parseInt(e.target.dataset.index), 1);
                 renderRules();
-                triggerAutoUpdate(); // Mise à jour auto après suppression
+                triggerAutoUpdate(); 
             });
         });
     }
@@ -326,7 +331,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById(containerId);
         if(!container) return;
         
-        // Init au chargement
         if (containerId === 'container-produit') {
             const selected = container.querySelector('.custom-option.selected');
             if (selected) {
@@ -334,6 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateEpaisseurText(val);
                 checkRocAvailability(val);
                 checkVerticalJointLimit(val);
+                updateMaxRows(); // Init Calcul Lignes
             }
         }
 
@@ -348,8 +353,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateEpaisseurText(val);
                 checkRocAvailability(val);
                 checkVerticalJointLimit(val);
+                updateMaxRows(); // Recalcul Lignes au clic
             }
-            triggerAutoUpdate(); // Auto-update sur sélection
+            triggerAutoUpdate(); 
         });
     }
 
@@ -365,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (selected.length === 0) option.classList.add('selected');
             checkRocVisibility();
             checkColorDistribution();
-            triggerAutoUpdate(); // Auto-update sur sélection
+            triggerAutoUpdate(); 
         });
     }
 
@@ -380,16 +386,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const isRoc = rocOption && rocOption.classList.contains('selected');
         const isLisse = lisseOption && lisseOption.classList.contains('selected');
         
+        // --- NOUVEAU : RÉINITIALISATION AUTOMATIQUE ---
+        // Si l'aspect ROC n'est PAS sélectionné, mais qu'il y a des règles enregistrées :
+        // On supprime tout pour repartir à zéro.
+        if (!isRoc && rulesData.length > 0) {
+            rulesData = [];      // Vide la mémoire
+            renderRules();       // Vide l'affichage des étiquettes
+            triggerAutoUpdate(); // Met à jour le visuel immédiatement
+        }
+        // ----------------------------------------------
+
         if(rocOption.classList.contains('disabled')) {
              if(rocDistributionWrapper) rocDistributionWrapper.style.display = 'none';
         } else {
              if (rocDistributionWrapper) rocDistributionWrapper.style.display = (isRoc && isLisse) ? 'block' : 'none';
         }
         
+        // --- LOGIQUE D'AFFICHAGE DU BLOC ROC OPTIONS ---
+        if (containerRocOptions) {
+            if (isRoc && !rocOption.classList.contains('disabled')) {
+                containerRocOptions.style.display = 'block';
+                updateMaxRows(); 
+            } else {
+                containerRocOptions.style.display = 'none';
+            }
+        }
+        
         if (msgAstuceRoc) {
             msgAstuceRoc.style.display = (isLisse && !isRoc) ? 'flex' : 'none';
         }
-        if (containerRocOptions) containerRocOptions.style.display = 'block';
     }
     
     function checkColorDistribution() {
@@ -470,7 +495,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 valSpan.style.fontSize = '0.8rem';
                 valSpan.style.textAlign = 'right';
 
-                // Input sur slider de couleur déclenche aussi l'auto-update
                 input.addEventListener('input', () => {
                     let currentVal = parseInt(input.value);
                     const allInputs = Array.from(containerSliders.querySelectorAll('input[type="range"]'));
@@ -488,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         totalSpan.textContent = newTotal;
                         totalSpan.style.color = (newTotal === 100) ? 'green' : 'orange';
                     }
-                    triggerAutoUpdate(); // <--- ICI
+                    triggerAutoUpdate(); 
                 });
 
                 row.appendChild(label);
@@ -521,7 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(loadingOverlay) loadingOverlay.classList.add('hidden');
         if(bouton) { 
             bouton.disabled = false; 
-            bouton.textContent = "Mélanger / Régénérer"; // Changement de texte
+            bouton.textContent = "Mélanger / Régénérer"; 
             bouton.style.opacity = "1";
         }
         if(initialOverlay) initialOverlay.classList.add('hidden');
@@ -564,10 +588,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 6. MOTEUR GÉNÉRATION (FONCTION EXTRAITE)
+    // 6. MOTEUR GÉNÉRATION 
     // ==========================================
 
-    // Le clic sur le bouton force la régénération (mode manuel / mélanger)
     bouton.addEventListener('click', () => {
         lancerGenerationMoteur();
     });
@@ -590,7 +613,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const lignesLisseMap = {};
             const lignesJointMap = {}; 
             
-            // --- Calcul des proportions (Poids) ---
             const colorWeights = {};
             let totalWeight = 0;
             
@@ -663,7 +685,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             largeurJointH, largeurJointV, typeJoint 
                         );
                         
-                        // Si une scène est active, on met à jour la texture du mur 3D
                         if(selectScene && selectScene.value !== 'neutre') {
                              updateSceneView(selectScene.value);
                         }
@@ -680,7 +701,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 7. DESSIN PRINCIPAL (STRICTEMENT IDENTIQUE A L'ORIGINE)
+    // 7. DESSIN PRINCIPAL
     // ==========================================
     
     function dessinerMur(imagesMap, couleurs, finitions, imgGlobalJoint, jointsLibrary, appareillage, configProduit, pourcentageRoc, colorWeights, lignesRocMap, lignesLisseMap, lignesJointMap, largeurJointH, largeurJointV, typeJoint) {
@@ -1022,6 +1043,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Premier lancement automatique pour ne pas avoir un écran vide
+    // Premier lancement automatique
     setTimeout(triggerAutoUpdate, 500);
 });
