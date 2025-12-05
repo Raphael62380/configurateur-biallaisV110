@@ -47,13 +47,14 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
     box-sizing: border-box;
     padding: 0 20px 40px;
     margin: 0 auto;
+    
     display: flex;
-    flex-wrap: nowrap; /* Important pour le resizer : pas de retour à la ligne sur PC */
-    align-items: stretch; /* Les colonnes font la même hauteur */
-    gap: 0; /* On gère l'espace avec le resizer */
-    overflow: visible !important; 
+    flex-wrap: nowrap;
+    
+    /* C'EST LA LIGNE MAGIQUE : */
+   align-items: flex-start; /* INDISPENSABLE */
+    overflow: visible !important;
 }
-
 /* --- COLONNE GAUCHE (CONFIG) --- */
 .config-panel {
     /* Largeur par défaut (sera modifiée par le JS) */
@@ -98,12 +99,30 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
 
 /* --- COLONNE DROITE (PREVIEW) --- */
 .preview-panel { 
-    flex: 1; /* Prend tout le reste */
+    flex: 1; /* Prend l'espace restant */
     min-width: 400px; 
-    position: sticky; top: 20px; 
-    margin-left: 10px; /* Petit espace après le resizer */
+    
+    margin-left: 10px; 
+    
+    /* ACTIVATION DU STICKY */
+    position: -webkit-sticky; 
+    position: sticky;
+    
+    /* LA FORMULE MAGIQUE : */
+    /* Au lieu de dire "colle-toi à 20px du haut" (top: 20px),
+       on lui dit : "colle-toi de façon à ce que ton BAS soit visible". */
+       
+    top: calc(100vh - 100% - 20px);
+    
+    /* Explication de la formule :
+       100vh = Hauteur de votre écran
+       100%  = Hauteur du panneau de rendu
+       -20px = Petite marge en bas
+       
+       Résultat : Si le panneau est petit, il colle en haut.
+                  Si le panneau est grand, il scrolle avec vous jusqu'à ce que 
+                  l'estimation technique soit visible en bas, puis il se bloque. */
 }
-
 /* LE RESTE DU CSS RESTE IDENTIQUE... */
 .config-section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
 .config-section:last-of-type { border-bottom: none; padding-bottom: 0; }
@@ -130,6 +149,11 @@ details[open] .advanced-summary::after { content: '-'; }
 .rule-builder { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
 .form-control.small-input { padding: 5px; font-size: 0.85rem; height: 38px; }
 .btn-mini { background-color: var(--accent-color); color: white; border: none; border-radius: 4px; width: 40px; height: 38px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+/* NOUVEAU STYLE POUR LE BOUTON RESET */
+.btn-danger { background-color: #dc3545; }
+.btn-danger:hover { background-color: #c82333; }
+
 .tags-container { display: flex; flex-wrap: wrap; gap: 8px; min-height: 30px; background: #fff; border: 1px solid #dee2e6; padding: 10px; border-radius: 4px; }
 .rule-tag { background-color: #e9ecef; border: 1px solid #ced4da; border-radius: 20px; padding: 5px 12px; font-size: 0.85rem; color: #495057; display: flex; align-items: center; gap: 8px; }
 .slider-container { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -186,3 +210,7 @@ details[open] .advanced-summary::after { content: '-'; }
     .custom-grid-list { grid-template-columns: repeat(2, 1fr); }
     canvas, img { max-width: 100%; height: auto; display: block; }
 }
+
+/* CURSEURS POUR LE PAN (NOUVEAU) */
+.grab-cursor { cursor: grab; }
+.grabbing-cursor { cursor: grabbing !important; }

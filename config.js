@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 0. VERSION
     // ==========================================
-    const APP_VERSION = "v1.3.0 (Final Pro)"; 
+    const APP_VERSION = "v1.4.1 (Pan + Reset Rules)"; 
     
     const versionDiv = document.getElementById('app-version');
     if(versionDiv) {
@@ -44,6 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const sliderColorDist = document.getElementById('slider-color-dist');
 
     const btnAddRule = document.getElementById('btn-add-rule');
+    const btnResetRules = document.getElementById('btn-reset-rules'); // NOUVEAU
+
     const inputRow = document.getElementById('new-line-number');
     const inputFinish = document.getElementById('new-line-finish');
     const inputColor = document.getElementById('new-line-color');
@@ -72,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
             css: 'translate(-40px, 80px) rotateY(0deg)' 
         },
         'jardin': {
-            img: 'https://images.unsplash.com/photo-1558293842-c0fd3db8415e?auto=format&fit=crop&w=1000&q=80',
+            img: 'https://images.unsplash.com/photo-1558293842-c0fd3db8415e?auto=format&fit=crop&w=1000&q=80', // Remplacez par votre image si besoin
             mode: 'pattern',
             scalePattern: 0.2,
             css: 'translate(-100px, 80px) rotateY(45deg) rotateX(0deg)'
@@ -80,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 2. AUTO-UPDATE LOGIC
+    // 2. AUTO-UPDATE & ZOOM LOGIC
     // ==========================================
 
     function triggerAutoUpdate() {
@@ -119,9 +121,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- LOGIQUE ZOOM & PAN (DÉPLACEMENT) ---
+    let currentZoom = 1;
+    let isDragging = false;
+    let startX, startY;
+    let translateX = 0, translateY = 0;
+
+    function applyTransform() {
+        // Applique à la fois le zoom et le déplacement
+        canvas.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom})`;
+    }
+
     if (zoomSlider) {
         zoomSlider.addEventListener('input', (e) => {
-            canvas.style.transform = `scale(${e.target.value})`;
+            currentZoom = parseFloat(e.target.value);
+            
+            // Si on revient à 100%, on remet l'image au centre
+            if (currentZoom === 1) {
+                translateX = 0;
+                translateY = 0;
+                canvasWrapper.classList.remove('grab-cursor');
+            } else {
+                canvasWrapper.classList.add('grab-cursor');
+            }
+            applyTransform();
+        });
+    }
+
+    if (canvasWrapper) {
+        // Début du clic
+        canvasWrapper.addEventListener('mousedown', (e) => {
+            // On ne peut déplacer que si on est zoomé
+            if (currentZoom > 1) {
+                isDragging = true;
+                // On calcule le point de départ en tenant compte du décalage actuel
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+                canvasWrapper.classList.add('grabbing-cursor');
+            }
+        });
+
+        // Fin du clic (relachement) - on écoute sur window pour ne pas perdre le focus si on sort
+        window.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                canvasWrapper.classList.remove('grabbing-cursor');
+            }
+        });
+
+        // Mouvement de la souris
+        canvasWrapper.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault(); // Évite de sélectionner le texte
+            
+            // Nouveau calcul de position
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+            
+            applyTransform();
         });
     }
 
@@ -142,8 +199,10 @@ document.addEventListener('DOMContentLoaded', () => {
             canvas.style.display = 'block';
             patternLayer.style.display = 'none';
             if(zoomControls) zoomControls.style.display = 'flex';
-            if(zoomSlider) zoomSlider.value = 1;
-            canvas.style.transform = 'scale(1)';
+            if(zoomSlider) {
+                zoomSlider.value = 1;
+                zoomSlider.dispatchEvent(new Event('input')); // Reset zoom logic
+            }
             canvas.style.boxShadow = "0 10px 25px rgba(0,0,0,0.2)";
         } else {
             canvas.style.display = 'none';
@@ -220,9 +279,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const inputNum = document.getElementById('new-line-number');
             
             if (spanInfo) spanInfo.textContent = `(Dispo : 1 à ${maxRows})`;
+            
+            // MODIFICATION ICI : On change le placeholder pour guider l'utilisateur
             if (inputNum) {
-                inputNum.max = maxRows;
-                inputNum.placeholder = `N° (1-${maxRows})`;
+                inputNum.placeholder = `Ex: 1, 3, 5 (Max ${maxRows})`;
             }
         }
     }
@@ -230,13 +290,32 @@ document.addEventListener('DOMContentLoaded', () => {
     function checkRocAvailability(productId) {
         const rocOption = containerFinition.querySelector('.custom-option[data-value="roc"]');
         const lisseOption = containerFinition.querySelector('.custom-option[data-value="lisse"]');
+        
+        const selectFinishRule = document.getElementById('new-line-finish');
 
         if (NO_ROC_PRODUCTS.includes(productId)) {
+            // CAS 1 : Pas de Roc dispo
             rocOption.classList.add('disabled');
             rocOption.classList.remove('selected');
             lisseOption.classList.add('selected');
+            
+            if (selectFinishRule) {
+                selectFinishRule.innerHTML = '<option value="lisse">Lisse</option>';
+                selectFinishRule.value = 'lisse';
+            }
         } else {
+            // CAS 2 : Roc dispo
             rocOption.classList.remove('disabled');
+            
+            if (selectFinishRule) {
+                if (selectFinishRule.options.length < 2) {
+                    selectFinishRule.innerHTML = `
+                        <option value="roc">Roc</option>
+                        <option value="lisse">Lisse</option>
+                    `;
+                    selectFinishRule.value = 'roc';
+                }
+            }
         }
         checkRocVisibility();
     }
@@ -257,19 +336,69 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnAddRule) {
         btnAddRule.addEventListener('click', (e) => {
             e.preventDefault();
-            const row = parseInt(inputRow.value);
-            if (!row || row < 1) { alert("Ligne invalide"); return; }
+            
+            // 1. On récupère le texte (ex: "1, 3, 5")
+            const rawText = inputRow.value;
+            
+            // 2. On découpe par la virgule et on nettoie
+            // Cela crée un tableau de chiffres [1, 3, 5]
+            const rowsToAdd = rawText.split(',')
+                                     .map(str => parseInt(str.trim()))
+                                     .filter(num => !isNaN(num) && num > 0);
+
+            if (rowsToAdd.length === 0) { 
+                alert("Veuillez entrer au moins un numéro de ligne valide."); 
+                return; 
+            }
+
             const finish = inputFinish.value; 
             const color = inputColor.value;   
             const joint = inputJoint ? inputJoint.value : ""; 
-            rulesData = rulesData.filter(r => r.row !== row);
-            rulesData.push({ row, finish, color, joint });
+
+            // 3. On boucle sur chaque numéro trouvé
+            rowsToAdd.forEach(row => {
+                // On supprime l'ancienne règle pour cette ligne si elle existe
+                rulesData = rulesData.filter(r => r.row !== row);
+                
+                // On ajoute la nouvelle
+                rulesData.push({ row, finish, color, joint });
+            });
+
+            // 4. On trie pour que l'affichage soit propre (Ligne 1, puis 3, puis 5...)
             rulesData.sort((a, b) => a.row - b.row);
+            
             renderRules();
-            inputRow.value = ''; inputRow.focus();
+            inputRow.value = ''; 
+            inputRow.focus();
             triggerAutoUpdate(); 
         });
     }
+
+    // --- NOUVEAU : BOUTON RESET (Supprimer toutes les règles) ---
+    if (btnResetRules) {
+        btnResetRules.addEventListener('click', (e) => {
+            e.preventDefault();
+            // On ne demande pas confirmation pour aller vite, ou vous pouvez ajouter confirm()
+            rulesData = [];
+            renderRules();
+            triggerAutoUpdate();
+        });
+    }
+    
+    // --- NOUVEAU : AJOUTER AVEC LA TOUCHE ENTRÉE ---
+    // Permet de valider en appuyant sur Entrée depuis n'importe quel champ de la ligne
+    const inputsLigneForcee = [inputRow, inputFinish, inputColor, inputJoint];
+    
+    inputsLigneForcee.forEach(element => {
+        if (element) {
+            element.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Empêche de recharger la page si c'était dans un form
+                    if (btnAddRule) btnAddRule.click(); // Simule le clic sur le bouton AJOUTER
+                }
+            });
+        }
+    });
 
     function renderRules() {
         if (!rulesContainer) return;
@@ -324,12 +453,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById(containerId);
         if(!container) return;
         
+       // Init au chargement
         if (containerId === 'container-produit') {
             const selected = container.querySelector('.custom-option.selected');
             if (selected) {
                 const val = selected.dataset.value;
                 updateEpaisseurText(val);
-                checkRocAvailability(val);
+                checkRocAvailability(val); 
                 checkVerticalJointLimit(val);
                 updateMaxRows(); 
             }
@@ -372,35 +502,32 @@ document.addEventListener('DOMContentLoaded', () => {
     setupMultiChoice(containerFinition);
     setupMultiChoice(containerCouleur);
 
-   function checkRocVisibility() {
+    function checkRocVisibility() {
         const rocOption = containerFinition.querySelector('.custom-option[data-value="roc"]');
         const lisseOption = containerFinition.querySelector('.custom-option[data-value="lisse"]');
         
         const isRoc = rocOption && rocOption.classList.contains('selected');
         const isLisse = lisseOption && lisseOption.classList.contains('selected');
         
-        // --- MODIFICATION : ON NE SUPPRIME PLUS LES RÈGLES AUTO ---
-        // (On garde les lignes forcées même si on change de finition principale)
+        // On ne supprime plus les règles si Roc est décoché (mémoire conservée)
 
-        // Gestion du slider de répartition (Uniquement si Lisse ET Roc sont sélectionnés)
         if(rocOption.classList.contains('disabled')) {
              if(rocDistributionWrapper) rocDistributionWrapper.style.display = 'none';
         } else {
-             if (rocDistributionWrapper) rocDistributionWrapper.style.display = (isRoc && isLisse) ? 'block' : 'none';
+             if (rocDistributionWrapper) {
+                 const shouldShow = (isRoc && isLisse);
+                 rocDistributionWrapper.style.display = shouldShow ? 'block' : 'none';
+                 if (shouldShow) updateUIValues(); 
+             }
         }
         
-        // --- MODIFICATION : AFFICHAGE PERMANENT DU BLOC "FORCER UNE LIGNE" ---
-        // Il apparaît maintenant tout le temps (sauf si le produit est invalide), 
-        // que l'on soit en Lisse ou en Roc.
+        // Affichage permanent du bloc "Forcer une ligne"
         if (containerRocOptions) {
             containerRocOptions.style.display = 'block';
-            updateMaxRows(); // On s'assure que le calcul des lignes est à jour
+            updateMaxRows();
         }
         
-        // On cache le message d'astuce car le menu est maintenant toujours visible
-        if (msgAstuceRoc) {
-            msgAstuceRoc.style.display = 'none';
-        }
+        if (msgAstuceRoc) msgAstuceRoc.style.display = 'none';
     }
     
     function checkColorDistribution() {
@@ -534,7 +661,6 @@ document.addEventListener('DOMContentLoaded', () => {
             bouton.textContent = "Mélanger / Régénérer"; 
             bouton.style.opacity = "1";
         }
-        if(initialOverlay) initialOverlay.classList.add('hidden');
     }
     function getSingleValue(container) {
         const selected = container.querySelector('.custom-option.selected');
@@ -1029,10 +1155,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Premier lancement automatique
-    setTimeout(triggerAutoUpdate, 500);
-});
-// ==========================================
+    // ==========================================
     // 9. LOGIQUE DU RESIZER (VOLET RÉGLABLE)
     // ==========================================
     
@@ -1040,34 +1163,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const leftSide = document.querySelector('.config-panel');
     const rightSide = document.querySelector('.preview-panel');
 
-    // La position actuelle de la souris
     let x = 0;
     let leftWidth = 0;
 
-    // Fonction quand on clique sur la barre
     const mouseDownHandler = function(e) {
-        // Obtenir la position actuelle de la souris
         x = e.clientX;
         leftWidth = leftSide.getBoundingClientRect().width;
-
-        // Attacher les écouteurs au document
         document.addEventListener('mousemove', mouseMoveHandler);
         document.addEventListener('mouseup', mouseUpHandler);
-        
-        // Effet visuel
         document.body.style.cursor = 'col-resize';
-        resizer.style.borderLeft = '2px solid #007bff';
+        if(resizer) resizer.style.borderLeft = '2px solid #007bff';
     };
 
     const mouseMoveHandler = function(e) {
-        // Jusqu'où la souris a bougé ?
         const dx = e.clientX - x;
         const newWidth = leftWidth + dx;
-        
-        // Limites (Min 300px, Max 50% de l'écran)
         if (newWidth > 300 && newWidth < window.innerWidth * 0.6) {
             leftSide.style.width = `${newWidth}px`;
-            // Important pour Flexbox :
             leftSide.style.flex = `0 0 ${newWidth}px`;
         }
     };
@@ -1075,15 +1187,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const mouseUpHandler = function() {
         document.removeEventListener('mousemove', mouseMoveHandler);
         document.removeEventListener('mouseup', mouseUpHandler);
-        
         document.body.style.cursor = 'default';
-        resizer.style.borderLeft = 'none';
-        
-        // On relance le dessin si la taille du canvas a changé
+        if(resizer) resizer.style.borderLeft = 'none';
         triggerAutoUpdate();
     };
 
-    // Attacher l'écouteur si le resizer existe (mode bureau)
     if (resizer) {
         resizer.addEventListener('mousedown', mouseDownHandler);
     }
+
+    // ==========================================
+    // 10. GESTION DE L'ÉCRAN D'ACCUEIL (LOGO)
+    // ==========================================
+    
+    function dismissWelcomeScreen() {
+        if (initialOverlay && !initialOverlay.classList.contains('hidden')) {
+            initialOverlay.classList.add('hidden');
+            const video = initialOverlay.querySelector('video');
+            if (video) video.pause();
+        }
+    }
+
+    const configPanel = document.querySelector('.config-panel');
+    if (configPanel) {
+        configPanel.addEventListener('mousedown', dismissWelcomeScreen, { once: true });
+        configPanel.addEventListener('touchstart', dismissWelcomeScreen, { once: true });
+        configPanel.addEventListener('change', dismissWelcomeScreen, { once: true });
+    }
+    
+    if (resizer) {
+        resizer.addEventListener('mousedown', dismissWelcomeScreen, { once: true });
+    }
+
+    // Premier lancement automatique
+    setTimeout(triggerAutoUpdate, 500);
+
+}); // FIN DU DOMContentLoaded
