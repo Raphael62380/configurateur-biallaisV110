@@ -198,19 +198,89 @@ details[open] .advanced-summary::after { content: '-'; }
 .disclaimer { display: block; margin-top: 10px; font-size: 0.75rem; color: #999; font-style: italic; }
 #wall-pattern-layer { position: absolute; top: 50%; left: 50%; width: 300%; height: 300%; background-repeat: repeat; transform: translate(-50%, -50%); transform-origin: center center; display: none; pointer-events: none; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
 
-/* MOBILE SPÉCIFIQUE (On désactive le resizer sur mobile) */
+/* MOBILE SPÉCIFIQUE */
 @media (max-width: 900px) {
     .app-wrapper { flex-direction: column; gap: 0; padding: 0; display: flex; }
-    .resizer { display: none; } /* Pas de resizer sur mobile */
+    .resizer { display: none; } 
     .preview-panel { order: -1; position: -webkit-sticky; position: sticky; top: 0; z-index: 1000; background: #fff; border-bottom: 2px solid #eee; width: 100%; min-width: 0; padding-bottom: 5px; margin: 0; }
-    .config-panel { order: 2; padding: 15px; box-shadow: none; border-radius: 0; flex: auto; width: 100%; max-width: 100%; }
+    
+    /* On s'assure que le panneau de config ne dépasse jamais la largeur de l'écran */
+    .config-panel { 
+        order: 2; 
+        padding: 15px; 
+        box-shadow: none; 
+        border-radius: 0; 
+        flex: auto; 
+        width: 100%; 
+        max-width: 100vw; /* Force la largeur max à la vue écran */
+        box-sizing: border-box; /* Inclut le padding dans la largeur */
+        overflow-x: hidden; /* Empêche le débordement horizontal interne */
+    }
+
     .canvas-container-wrapper { min-height: 220px; width: 100%; border: none; border-radius: 0; }
     .preview-toolbar { padding: 5px 10px; border-radius: 0; border-top: 1px solid #eee; }
     .preview-info, .tech-summary { display: none !important; }
     .custom-grid-list { grid-template-columns: repeat(2, 1fr); }
     canvas, img { max-width: 100%; height: auto; display: block; }
-}
 
+    /* --- CORRECTIFS POUR ÉVITER QUE LE CONTENU SOIT COUPÉ --- */
+
+    /* 1. Corriger les boites d'info (bleues/jaunes) pour qu'elles passent à la ligne */
+    .info-box, 
+    #container-produit .info-box, 
+    #msg-astuce-roc {
+        flex-direction: column; /* Icone au dessus du texte */
+        align-items: flex-start;
+        height: auto;
+        white-space: normal; /* Autorise le texte à aller à la ligne */
+    }
+    .info-box span {
+        width: 100%;
+        display: block;
+    }
+
+    /* 2. Corriger le constructeur de lignes (Rule Builder) */
+    /* On force les lignes flexibles à passer à la ligne suivante si pas de place */
+    .rule-builder > div {
+        flex-wrap: wrap !important; 
+        gap: 8px !important;
+    }
+
+    /* On annule les largeurs fixes (160px, 120px) définies dans le HTML */
+    .rule-builder input,
+    .rule-builder select,
+    .rule-builder button {
+        width: auto !important; /* Écrase le style inline */
+        min-width: 0;
+    }
+
+    /* -- Ligne 1 : Numéro, Finition, Couleur -- */
+    /* On met Numéro et Finition côte à côte */
+    #new-line-number { flex: 1 1 40% !important; } 
+    #new-line-finish { flex: 1 1 40% !important; }
+    /* La couleur prend toute la largeur en dessous */
+    #new-line-color { 
+        flex: 1 1 100% !important; 
+        margin-top: 2px;
+    }
+
+    /* -- Ligne 2 : Joint, Bouton Ajouter, Poubelle -- */
+    /* Le sélecteur de joint prend toute la largeur */
+    #new-line-joint { 
+        flex: 1 1 100% !important; 
+        margin-bottom: 5px;
+    }
+    /* Le bouton AJOUTER prend la place restante */
+    #btn-add-rule { 
+        flex: 3 1 auto !important; 
+        width: auto !important;
+    }
+    /* La poubelle prend juste sa petite place */
+    #btn-reset-rules { 
+        flex: 0 0 50px !important; 
+        width: 50px !important;
+    }
+}
 /* CURSEURS POUR LE PAN (NOUVEAU) */
 .grab-cursor { cursor: grab; }
 .grabbing-cursor { cursor: grabbing !important; }
