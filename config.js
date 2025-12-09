@@ -213,56 +213,70 @@ function updateSceneView(sceneKey) {
         const config = SCENES_CONFIG[sceneKey];
         if (!config) return;
 
-        // Récupération des éléments HTML
         const layer = document.getElementById('wall-pattern-layer');
         const cvs = document.getElementById('apercuCanvas');
 
-        // GESTION DU FOND (Blanc ou Gris clair si pas d'image)
+        // GESTION DU FOND
         if (config.img) {
             canvasWrapper.style.backgroundImage = `url('${config.img}')`;
         } else {
             canvasWrapper.style.backgroundImage = 'none';
-            // Fond gris très léger pour bien voir le mur blanc
             canvasWrapper.style.backgroundColor = '#f4f6f8'; 
         }
 
-        // === CAS 1 : VUE SIMPLE (Canvas) ===
+        // === CAS 1 : VUE CANVAS SIMPLE ===
         if (config.mode === 'canvas') {
-            cvs.style.display = 'block';      // On montre le canvas
-            if(layer) layer.style.display = 'none'; // On cache le layer motif
+            cvs.style.display = 'block';
+            if(layer) layer.style.display = 'none';
             
             if(zoomControls) zoomControls.style.display = 'flex';
             if(zoomSlider) { zoomSlider.value = 1; zoomSlider.dispatchEvent(new Event('input')); }
-            
-            // On remet l'ombre pour l'effet "bloc"
             cvs.style.boxShadow = "0 10px 25px rgba(0,0,0,0.2)";
         } 
         
-        // === CAS 2 : VUE GRANDE SURFACE / PERSPECTIVE (Pattern) ===
+        // === CAS 2 : VUE GRANDE SURFACE & PERSPECTIVE ===
         else {
-            cvs.style.display = 'none';       // On cache le canvas original
+            cvs.style.display = 'none';
             
             if (layer) {
-                layer.style.display = 'block'; // On active le layer motif
+                layer.style.display = 'block';
                 
-                // 1. On "photographie" le canvas actuel pour en faire une texture
-                const textureUrl = cvs.toDataURL();
+                // --- OPTIMISATION CRITIQUE POUR MOBILE ---
+                // On évite de passer une image de 4000px en base64 (crash mobile).
+                // On crée une version redimensionnée "légère" pour la texture.
+                
+                const maxTextureSize = 1024; // Taille suffisant pour une texture écran
+                let textureUrl;
+                
+                if (cvs.width > maxTextureSize) {
+                    // Création d'un canvas temporaire pour réduire l'image
+                    const tempCanvas = document.createElement('canvas');
+                    const ratio = maxTextureSize / cvs.width;
+                    tempCanvas.width = maxTextureSize;
+                    tempCanvas.height = cvs.height * ratio;
+                    
+                    const tCtx = tempCanvas.getContext('2d');
+                    tCtx.drawImage(cvs, 0, 0, tempCanvas.width, tempCanvas.height);
+                    textureUrl = tempCanvas.toDataURL(); // Image légère
+                } else {
+                    textureUrl = cvs.toDataURL(); // Image originale
+                }
+                
                 layer.style.backgroundImage = `url(${textureUrl})`;
                 
-                // 2. Détection Mobile
+                // Détection Mobile
                 const dpr = window.devicePixelRatio || 1;
                 const isMobile = window.innerWidth <= 900; 
                 
-                // 3. Choix des réglages (Taille & Rotation)
+                // Choix des réglages
                 const currentScale = (isMobile && config.scaleMobile) ? config.scaleMobile : config.scalePattern;
                 const currentCss = (isMobile && config.cssMobile) ? config.cssMobile : config.css;
 
-                // 4. Calcul de la taille du motif
+                // Calcul de la taille d'affichage (Basé sur la taille originale pour garder l'échelle)
                 const finalSize = (cvs.width / dpr) * currentScale;
                 layer.style.backgroundSize = `${finalSize}px auto`;
                 
-                // 5. Application de la transformation
-                // IMPORTANT : translate(-50%, -50%) est vital pour le centrage CSS !
+                // Application CSS
                 layer.style.transform = `translate(-50%, -50%) ${currentCss}`;
             }
             
