@@ -175,7 +175,7 @@ details[open] .advanced-summary::after { content: '-'; }
     border-radius: 8px 8px 0 0; 
     
     flex: 1;       /* Flexible */
-    min-height: 350px; /* <--- LA SÉCURITÉ : L'image ne sera jamais plus petite que ça */
+    min-height: 500px; /* <--- LA SÉCURITÉ : L'image ne sera jamais plus petite que ça */
     
     display: flex; 
     align-items: center; 
@@ -323,3 +323,29 @@ details[open] .advanced-summary::after { content: '-'; }
 /* CURSEURS POUR LE PAN (NOUVEAU) */
 .grab-cursor { cursor: grab; }
 .grabbing-cursor { cursor: grabbing !important; }
+/* --- LE CALQUE MAGIQUE (Répétition & Perspective) --- */
+#wall-pattern-layer {
+    /* 1. Caché par défaut, le JS l'activera avec display: block */
+    display: none; 
+    
+    /* 2. Positionnement Absolu pour se superposer au canvas */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    
+    /* 3. TAILLE IMMENSE : Il doit dépasser de l'écran pour la 3D */
+    width: 300vmax;  /* 3x la taille de l'écran */
+    height: 300vmax;
+    
+    /* 4. Gestion de l'image de fond */
+    background-repeat: repeat;   /* C'est ça qui fait la "Grande Surface" */
+    background-position: center; 
+    
+    /* 5. Centrage du point de pivot (pour la rotation) */
+    transform-origin: center center;
+    transform: translate(-50%, -50%); /* On le centre parfaitement */
+    
+    /* 6. Ordre d'affichage : Devant le fond blanc, derrière le chargement */
+    z-index: 10; 
+    pointer-events: none; /* Permet de cliquer à travers si besoin */
+}

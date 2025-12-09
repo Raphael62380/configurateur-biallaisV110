@@ -66,38 +66,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const patternLayer = document.getElementById('wall-pattern-layer');
 
 const SCENES_CONFIG = {
-        // 1. VUE STANDARD (Juste le canvas généré)
+        // 1. VUE CLASSIQUE (Une seule brique / panneau)
         'neutre': { 
             img: null, 
             mode: 'canvas' 
         },
 
-        // 2. VUE GRANDE SURFACE (Mur "multiplié" à l'infini, à plat)
+        // 2. GRANDE SURFACE (Le mur répété à l'infini, à plat)
         'facade': {
-            img: null,        // <--- NULL = Fond blanc/neutre (pas de maison)
-            mode: 'pattern',  // <--- PATTERN = Texture qui se répète à l'infini
+            img: null,         // Pas de photo de maison
+            mode: 'pattern',   // Mode répétition
             
-            // Réglages PC
-            scalePattern: 0.4, // Zoom moyen
-            css: 'rotateY(0deg)', // Pas de rotation
+            // --- REGLAGES PC ---
+            scalePattern: 0.35, // Zoom agréable
+            css: 'rotateY(0deg)', // Pas de rotation, bien à plat
             
-            // Réglages MOBILE (pour que ce soit joli sur petit écran)
-            scaleMobile: 0.3, 
-            cssMobile: 'rotateY(0deg)' 
+            // --- REGLAGES MOBILE (Nouveau) ---
+            scaleMobile: 0.25, // Un peu plus petit sur téléphone
+            cssMobile: 'rotateY(0deg)' // Pas de décalage bizarre
         },
 
-        // 3. VUE PERSPECTIVE (Mur "multiplié" à l'infini, en 3D)
+        // 3. PERSPECTIVE (Le mur répété, mais en 3D)
         'jardin': {
-            img: null,        // <--- NULL = Fond blanc/neutre (pas de jardin)
-            mode: 'pattern',  // <--- PATTERN = Texture répétée
+            img: null,         // Pas de photo de jardin
+            mode: 'pattern',
             
-            // Réglages PC (Rotation forte)
+            // --- REGLAGES PC ---
             scalePattern: 0.3,
-            css: 'perspective(1000px) rotateY(35deg)', 
+            css: 'perspective(1000px) rotateY(35deg) translate(-50px, 0)', 
             
-            // Réglages MOBILE (Rotation plus douce pour rester lisible)
-            scaleMobile: 0.25,
-            cssMobile: 'perspective(600px) rotateY(20deg)' 
+            // --- REGLAGES MOBILE ---
+            scaleMobile: 0.2,
+            // On réduit l'angle (20deg) et on recentre (translate 0) pour ne pas sortir de l'écran
+            cssMobile: 'perspective(600px) rotateY(20deg) translate(0, 0)' 
         }
     };
 
@@ -208,56 +209,64 @@ const SCENES_CONFIG = {
         });
     }
 
-    function updateSceneView(sceneKey) {
+function updateSceneView(sceneKey) {
         const config = SCENES_CONFIG[sceneKey];
         if (!config) return;
 
-        // Gestion de l'image de fond (Maison/Jardin ou Blanc)
+        // Récupération des éléments HTML
+        const layer = document.getElementById('wall-pattern-layer');
+        const cvs = document.getElementById('apercuCanvas');
+
+        // GESTION DU FOND (Blanc ou Gris clair si pas d'image)
         if (config.img) {
             canvasWrapper.style.backgroundImage = `url('${config.img}')`;
         } else {
             canvasWrapper.style.backgroundImage = 'none';
-            // Si pas d'image, on force un fond gris très clair pour faire ressortir le mur
+            // Fond gris très léger pour bien voir le mur blanc
             canvasWrapper.style.backgroundColor = '#f4f6f8'; 
         }
 
+        // === CAS 1 : VUE SIMPLE (Canvas) ===
         if (config.mode === 'canvas') {
-            // --- MODE ORIGINAL (Une seule plaque) ---
-            canvas.style.display = 'block';
-            patternLayer.style.display = 'none';
+            cvs.style.display = 'block';      // On montre le canvas
+            if(layer) layer.style.display = 'none'; // On cache le layer motif
+            
             if(zoomControls) zoomControls.style.display = 'flex';
+            if(zoomSlider) { zoomSlider.value = 1; zoomSlider.dispatchEvent(new Event('input')); }
             
-            // Reset du zoom manuel
-            if(zoomSlider) {
-                zoomSlider.value = 1;
-                zoomSlider.dispatchEvent(new Event('input')); 
-            }
-            canvas.style.boxShadow = "0 10px 25px rgba(0,0,0,0.2)";
+            // On remet l'ombre pour l'effet "bloc"
+            cvs.style.boxShadow = "0 10px 25px rgba(0,0,0,0.2)";
+        } 
         
-        } else {
-            // --- MODE MOTIF RÉPÉTÉ (Grand mur / Perspective) ---
-            canvas.style.display = 'none';
-            patternLayer.style.display = 'block';
+        // === CAS 2 : VUE GRANDE SURFACE / PERSPECTIVE (Pattern) ===
+        else {
+            cvs.style.display = 'none';       // On cache le canvas original
+            
+            if (layer) {
+                layer.style.display = 'block'; // On active le layer motif
+                
+                // 1. On "photographie" le canvas actuel pour en faire une texture
+                const textureUrl = cvs.toDataURL();
+                layer.style.backgroundImage = `url(${textureUrl})`;
+                
+                // 2. Détection Mobile
+                const dpr = window.devicePixelRatio || 1;
+                const isMobile = window.innerWidth <= 900; 
+                
+                // 3. Choix des réglages (Taille & Rotation)
+                const currentScale = (isMobile && config.scaleMobile) ? config.scaleMobile : config.scalePattern;
+                const currentCss = (isMobile && config.cssMobile) ? config.cssMobile : config.css;
+
+                // 4. Calcul de la taille du motif
+                const finalSize = (cvs.width / dpr) * currentScale;
+                layer.style.backgroundSize = `${finalSize}px auto`;
+                
+                // 5. Application de la transformation
+                // IMPORTANT : translate(-50%, -50%) est vital pour le centrage CSS !
+                layer.style.transform = `translate(-50%, -50%) ${currentCss}`;
+            }
+            
             if(zoomControls) zoomControls.style.display = 'none';
-
-            // 1. On transforme le canvas actuel en texture
-            const textureUrl = canvas.toDataURL();
-            patternLayer.style.backgroundImage = `url(${textureUrl})`;
-            
-            // 2. Détection Mobile vs PC
-            const dpr = window.devicePixelRatio || 1;
-            const isMobile = window.innerWidth <= 900; 
-            
-            // 3. Sélection des réglages (Taille et Rotation)
-            const currentScale = (isMobile && config.scaleMobile) ? config.scaleMobile : config.scalePattern;
-            const currentCss = (isMobile && config.cssMobile) ? config.cssMobile : config.css;
-
-            // 4. Application
-            const finalSize = (canvas.width / dpr) * currentScale;
-            patternLayer.style.backgroundSize = `${finalSize}px auto`;
-            
-            // Note importante : On garde 'translate(-50%, -50%)' pour que le mur soit TOUJOURS centré
-            patternLayer.style.transform = `translate(-50%, -50%) ${currentCss}`;
         }
     }
 
