@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(sliderJointV && sliderJointVVal) sliderJointVVal.textContent = sliderJointV.value + ' mm';
     }
 
-    const inputsToWatch = [
+const inputsToWatch = [
         selectAppareillage, selectJoint, selectTypeJoint, 
         sliderJointH, sliderJointV, sliderRoc, selectScene
     ];
@@ -111,11 +111,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if(el) {
             el.addEventListener('input', () => {
                 updateUIValues();
-                if (el === sliderJointH) updateMaxRows(); 
+                // MODIFICATION ICI : On met à jour le max de lignes pour ces éléments clés
+                if (el === sliderJointH || el === selectAppareillage) updateMaxRows(); 
                 triggerAutoUpdate();
             });
             el.addEventListener('change', () => {
                 updateUIValues();
+                // ET ICI AUSSI
+                if (el === sliderJointH || el === selectAppareillage) updateMaxRows();
                 triggerAutoUpdate();
             });
         }
@@ -265,28 +268,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. UI LOGIC
     // ==========================================
     
-    // --- CALCUL DES LIGNES DISPONIBLES ---
+  // --- CALCUL DES LIGNES DISPONIBLES (CORRIGÉ) ---
     function updateMaxRows() {
         const produitVal = getSingleValue(containerProduit);
         const config = PRODUITS_CONFIG[produitVal];
+        
+        // On récupère aussi l'appareillage car il influence le nombre de lignes !
+        const appareillage = selectAppareillage ? selectAppareillage.value : 'aligne';
         const jointH = sliderJointH ? parseInt(sliderJointH.value) : 10;
         
         if (config) {
             const moduleH = config.dims.hauteur + jointH;
-            const maxRows = Math.ceil(HAUTEUR_CIBLE_MM / moduleH);
+            
+            // 1. On utilise Math.round comme dans dessinerMur (et pas Math.ceil)
+            let maxRows = Math.round(HAUTEUR_CIBLE_MM / moduleH);
+            
+            // 2. On applique les mêmes corrections que le moteur de dessin
+            if (appareillage === 'demi-brique' || appareillage === 'moucharabieh') { 
+                if (maxRows % 2 !== 0) maxRows++; 
+            }
+            else if (appareillage === 'tiers') { 
+                while (maxRows % 3 !== 0) maxRows++; 
+            }
             
             const spanInfo = document.getElementById('info-max-lines');
             const inputNum = document.getElementById('new-line-number');
             
             if (spanInfo) spanInfo.textContent = `(Dispo : 1 à ${maxRows})`;
             
-            // MODIFICATION ICI : On change le placeholder pour guider l'utilisateur
             if (inputNum) {
+                // On met à jour le placeholder et aussi la limite max de l'input si vous en mettez une
                 inputNum.placeholder = `Ex: 1, 3, 5 (Max ${maxRows})`;
+                inputNum.dataset.max = maxRows; // Utile pour validation future
             }
         }
     }
-
     function checkRocAvailability(productId) {
         const rocOption = containerFinition.querySelector('.custom-option[data-value="roc"]');
         const lisseOption = containerFinition.querySelector('.custom-option[data-value="lisse"]');
@@ -860,10 +876,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const OMBRE_FONCEE = 'rgba(0, 0, 0, 0.45)'; 
         const OMBRE_CLAIRE = 'rgba(255, 255, 255, 0.3)'; 
-        const OMBRE_TAILLE = Math.max(1, LARGEUR_JOINT_H_PX * 0.2); 
+        const OMBRE_TAILLE = Math.round(Math.max(1, LARGEUR_JOINT_H_PX * 0.2)); 
         const JOINT_CONCAVE_OMBRE = 'rgba(0, 0, 0, 0.2)'; 
         const JOINT_CONCAVE_CLAIRE = 'rgba(255, 255, 255, 0.1)';
-        const JOINT_CONCAVE_LIGNE_PX = Math.max(1, LARGEUR_JOINT_H_PX * 0.4); 
+        const JOINT_CONCAVE_LIGNE_PX = Math.round(Math.max(1, LARGEUR_JOINT_H_PX * 0.4)); 
         
         if (typeJoint === 'demi-rond' && appareillage !== 'moucharabieh') {
             for (let y = 0; y < height + LARGEUR_JOINT_H_PX; y += (HAUTEUR_BRIQUE_PX + LARGEUR_JOINT_H_PX)) {
