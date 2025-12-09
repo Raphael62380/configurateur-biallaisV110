@@ -101,30 +101,29 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
 }
 .resizer:hover::after { background-color: var(--accent-color); }
 
-/* --- COLONNE DROITE (PREVIEW) --- */
 .preview-panel { 
     flex: 1; 
     min-width: 400px; 
     margin-left: 10px; 
-    
-    /* STICKY : Colle le panneau en haut de l'écran */
     position: -webkit-sticky; 
     position: sticky;
     top: 10px;
     
-    /* HAUTEUR FIXE : Fait la taille de l'écran moins une marge */
+    /* On force la hauteur max à l'écran */
     height: calc(100vh - 20px);
-    max-height: calc(100vh - 20px);
     
-    /* FLEXBOX : Pour organiser l'image et le texte */
     display: flex;
     flex-direction: column;
     
-    /* Pas d'ascenseur global sur le panneau */
-    overflow: hidden; 
+    /* SCROLL INTELLIGENT : 
+       Si l'écran est grand = Pas d'ascenseur.
+       Si l'écran est petit = Ascenseur activé pour voir le bas. */
+    overflow-y: auto; 
+    overflow-x: hidden;
     
     background: #fff;
-    border-radius: 8px; /* Optionnel pour le look */
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 /* LE RESTE DU CSS RESTE IDENTIQUE... */
 .config-section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
@@ -167,7 +166,25 @@ details[open] .advanced-summary::after { content: '-'; }
 .export-section { margin-top: 20px; padding-top: 20px; border-top: 2px dashed #eee; text-align: center; }
 .export-buttons-row { display: flex; gap: 10px; justify-content: center; }
 .btn-secondary { flex: 1; padding: 10px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
-.canvas-container-wrapper { position: relative; background-color: white; padding: 0; border: 1px solid var(--border-color); border-radius: 8px 8px 0 0; border-bottom: none; flex: 1; min-height: 0; height: auto; display: flex; align-items: center; justify-content: center; overflow: hidden; background-repeat: no-repeat; background-position: center; background-size: cover; }
+.canvas-container-wrapper { 
+    position: relative; 
+    background-color: white; 
+    padding: 0;
+    border: 1px solid var(--border-color); 
+    border-bottom: none; 
+    border-radius: 8px 8px 0 0; 
+    
+    flex: 1;       /* Flexible */
+    min-height: 350px; /* <--- LA SÉCURITÉ : L'image ne sera jamais plus petite que ça */
+    
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    overflow: hidden; 
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+}
 #apercuCanvas { max-width: 100%; max-height: 100%; height: auto; width: auto; object-fit: contain; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
 .preview-info { text-align: center; margin-top: 25px; color: #999; position: relative; z-index: 10; }
 .preview-toolbar { background-color: #f8f9fa; border: 1px solid var(--border-color); border-top: 1px solid #eee; border-radius: 0 0 8px 8px; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
@@ -191,29 +208,34 @@ details[open] .advanced-summary::after { content: '-'; }
 .version-label:hover { opacity: 1; color: #666; }
 .tech-summary { 
     background: #fff; 
-    border: 1px solid #e1e4e8; 
-    border-radius: 8px; 
-    padding: 10px; /* Un peu moins de padding pour gagner de la place */
-    margin-top: 10px; 
+    border-top: 1px solid #e1e4e8; /* Juste une ligne en haut pour séparer */
+    border-radius: 0 0 8px 8px; 
+    padding: 8px 12px; /* Marges réduites */
     
-    /* FLEX : Ne jamais rétrécir, garder sa taille naturelle */
-    flex: 0 0 auto; 
-    
-    /* Si vraiment le tableau est immense, on scroll DANS le tableau, pas la page */
-    overflow-y: auto; 
-    max-height: 40%; /* Sécurité */
+    flex: 0 0 auto; /* Ne rétrécit pas */
     box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    z-index: 20;
 }
-.tech-summary h4 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px;}
-.summary-grid { display: flex; gap: 20px; margin-bottom: 15px; }
-.sum-item { display: flex; flex-direction: column; }
-.sum-label { font-size: 0.8rem; color: #777; }
-.sum-value { font-size: 1.2rem; font-weight: bold; color: #28a745; }
-.distribution-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-.distribution-table th { text-align: left; border-bottom: 1px solid #ccc; padding: 5px; color: #555; }
-.distribution-table td { border-bottom: 1px solid #eee; padding: 5px; }
-.disclaimer { display: block; margin-top: 10px; font-size: 0.75rem; color: #999; font-style: italic; }
-#wall-pattern-layer { position: absolute; top: 50%; left: 50%; width: 300%; height: 300%; background-repeat: repeat; transform: translate(-50%, -50%); transform-origin: center center; display: none; pointer-events: none; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+
+.tech-summary h4 {
+    margin: 0 0 5px 0; /* Titre collé */
+    font-size: 0.95rem; /* Titre plus petit */
+    padding-bottom: 5px;
+}
+
+.summary-grid { 
+    display: flex; 
+    gap: 15px; 
+    margin-bottom: 5px; /* Moins d'espace sous les totaux */
+}
+
+.sum-label { font-size: 0.75rem; }
+.sum-value { font-size: 1rem; }
+
+/* Tableau ultra-compact */
+.distribution-table { font-size: 0.8rem; } /* Texte petit */
+.distribution-table td, .distribution-table th { padding: 2px 5px; } /* Lignes serrées */
+.disclaimer { margin-top: 2px; font-size: 0.7rem; }
 
 /* MOBILE SPÉCIFIQUE */
 @media (max-width: 900px) {
