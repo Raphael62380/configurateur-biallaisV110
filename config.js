@@ -65,19 +65,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasWrapper = document.querySelector('.canvas-container-wrapper');
     const patternLayer = document.getElementById('wall-pattern-layer');
 
-    const SCENES_CONFIG = {
-        'neutre': { img: null, mode: 'canvas' },
-        'facade': {
-            img: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1000&q=80', 
-            mode: 'pattern',
-            scalePattern: 0.25, 
-            css: 'translate(-40px, 80px) rotateY(0deg)' 
+const SCENES_CONFIG = {
+        // 1. VUE STANDARD (Juste le canvas généré)
+        'neutre': { 
+            img: null, 
+            mode: 'canvas' 
         },
+
+        // 2. VUE GRANDE SURFACE (Mur "multiplié" à l'infini, à plat)
+        'facade': {
+            img: null,        // <--- NULL = Fond blanc/neutre (pas de maison)
+            mode: 'pattern',  // <--- PATTERN = Texture qui se répète à l'infini
+            
+            // Réglages PC
+            scalePattern: 0.4, // Zoom moyen
+            css: 'rotateY(0deg)', // Pas de rotation
+            
+            // Réglages MOBILE (pour que ce soit joli sur petit écran)
+            scaleMobile: 0.3, 
+            cssMobile: 'rotateY(0deg)' 
+        },
+
+        // 3. VUE PERSPECTIVE (Mur "multiplié" à l'infini, en 3D)
         'jardin': {
-            img: 'https://images.unsplash.com/photo-1558293842-c0fd3db8415e?auto=format&fit=crop&w=1000&q=80', // Remplacez par votre image si besoin
-            mode: 'pattern',
-            scalePattern: 0.2,
-            css: 'translate(-100px, 80px) rotateY(45deg) rotateX(0deg)'
+            img: null,        // <--- NULL = Fond blanc/neutre (pas de jardin)
+            mode: 'pattern',  // <--- PATTERN = Texture répétée
+            
+            // Réglages PC (Rotation forte)
+            scalePattern: 0.3,
+            css: 'perspective(1000px) rotateY(35deg)', 
+            
+            // Réglages MOBILE (Rotation plus douce pour rester lisible)
+            scaleMobile: 0.25,
+            cssMobile: 'perspective(600px) rotateY(20deg)' 
         }
     };
 
@@ -102,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(sliderJointV && sliderJointVVal) sliderJointVVal.textContent = sliderJointV.value + ' mm';
     }
 
-const inputsToWatch = [
+    const inputsToWatch = [
         selectAppareillage, selectJoint, selectTypeJoint, 
         sliderJointH, sliderJointV, sliderRoc, selectScene
     ];
@@ -111,14 +131,11 @@ const inputsToWatch = [
         if(el) {
             el.addEventListener('input', () => {
                 updateUIValues();
-                // MODIFICATION ICI : On met à jour le max de lignes pour ces éléments clés
-                if (el === sliderJointH || el === selectAppareillage) updateMaxRows(); 
+                if (el === sliderJointH) updateMaxRows(); 
                 triggerAutoUpdate();
             });
             el.addEventListener('change', () => {
                 updateUIValues();
-                // ET ICI AUSSI
-                if (el === sliderJointH || el === selectAppareillage) updateMaxRows();
                 triggerAutoUpdate();
             });
         }
@@ -195,34 +212,52 @@ const inputsToWatch = [
         const config = SCENES_CONFIG[sceneKey];
         if (!config) return;
 
-        if (config.img) canvasWrapper.style.backgroundImage = `url('${config.img}')`;
-        else canvasWrapper.style.backgroundImage = 'none';
+        // Gestion de l'image de fond (Maison/Jardin ou Blanc)
+        if (config.img) {
+            canvasWrapper.style.backgroundImage = `url('${config.img}')`;
+        } else {
+            canvasWrapper.style.backgroundImage = 'none';
+            // Si pas d'image, on force un fond gris très clair pour faire ressortir le mur
+            canvasWrapper.style.backgroundColor = '#f4f6f8'; 
+        }
 
         if (config.mode === 'canvas') {
+            // --- MODE ORIGINAL (Une seule plaque) ---
             canvas.style.display = 'block';
             patternLayer.style.display = 'none';
             if(zoomControls) zoomControls.style.display = 'flex';
+            
+            // Reset du zoom manuel
             if(zoomSlider) {
                 zoomSlider.value = 1;
-                zoomSlider.dispatchEvent(new Event('input')); // Reset zoom logic
+                zoomSlider.dispatchEvent(new Event('input')); 
             }
             canvas.style.boxShadow = "0 10px 25px rgba(0,0,0,0.2)";
+        
         } else {
+            // --- MODE MOTIF RÉPÉTÉ (Grand mur / Perspective) ---
             canvas.style.display = 'none';
             patternLayer.style.display = 'block';
             if(zoomControls) zoomControls.style.display = 'none';
 
+            // 1. On transforme le canvas actuel en texture
             const textureUrl = canvas.toDataURL();
             patternLayer.style.backgroundImage = `url(${textureUrl})`;
             
+            // 2. Détection Mobile vs PC
             const dpr = window.devicePixelRatio || 1;
-            const isMobile = window.innerWidth <= 900;
-            const baseScale = config.scalePattern || 0.3;
-            const mobileFactor = isMobile ? 0.6 : 1; 
-            const finalSize = (canvas.width / dpr) * baseScale * mobileFactor;
+            const isMobile = window.innerWidth <= 900; 
             
+            // 3. Sélection des réglages (Taille et Rotation)
+            const currentScale = (isMobile && config.scaleMobile) ? config.scaleMobile : config.scalePattern;
+            const currentCss = (isMobile && config.cssMobile) ? config.cssMobile : config.css;
+
+            // 4. Application
+            const finalSize = (canvas.width / dpr) * currentScale;
             patternLayer.style.backgroundSize = `${finalSize}px auto`;
-            patternLayer.style.transform = `translate(-50%, -50%) ${config.css}`;
+            
+            // Note importante : On garde 'translate(-50%, -50%)' pour que le mur soit TOUJOURS centré
+            patternLayer.style.transform = `translate(-50%, -50%) ${currentCss}`;
         }
     }
 
@@ -268,41 +303,28 @@ const inputsToWatch = [
     // 4. UI LOGIC
     // ==========================================
     
-  // --- CALCUL DES LIGNES DISPONIBLES (CORRIGÉ) ---
+    // --- CALCUL DES LIGNES DISPONIBLES ---
     function updateMaxRows() {
         const produitVal = getSingleValue(containerProduit);
         const config = PRODUITS_CONFIG[produitVal];
-        
-        // On récupère aussi l'appareillage car il influence le nombre de lignes !
-        const appareillage = selectAppareillage ? selectAppareillage.value : 'aligne';
         const jointH = sliderJointH ? parseInt(sliderJointH.value) : 10;
         
         if (config) {
             const moduleH = config.dims.hauteur + jointH;
-            
-            // 1. On utilise Math.round comme dans dessinerMur (et pas Math.ceil)
-            let maxRows = Math.round(HAUTEUR_CIBLE_MM / moduleH);
-            
-            // 2. On applique les mêmes corrections que le moteur de dessin
-            if (appareillage === 'demi-brique' || appareillage === 'moucharabieh') { 
-                if (maxRows % 2 !== 0) maxRows++; 
-            }
-            else if (appareillage === 'tiers') { 
-                while (maxRows % 3 !== 0) maxRows++; 
-            }
+            const maxRows = Math.ceil(HAUTEUR_CIBLE_MM / moduleH);
             
             const spanInfo = document.getElementById('info-max-lines');
             const inputNum = document.getElementById('new-line-number');
             
             if (spanInfo) spanInfo.textContent = `(Dispo : 1 à ${maxRows})`;
             
+            // MODIFICATION ICI : On change le placeholder pour guider l'utilisateur
             if (inputNum) {
-                // On met à jour le placeholder et aussi la limite max de l'input si vous en mettez une
                 inputNum.placeholder = `Ex: 1, 3, 5 (Max ${maxRows})`;
-                inputNum.dataset.max = maxRows; // Utile pour validation future
             }
         }
     }
+
     function checkRocAvailability(productId) {
         const rocOption = containerFinition.querySelector('.custom-option[data-value="roc"]');
         const lisseOption = containerFinition.querySelector('.custom-option[data-value="lisse"]');
@@ -876,10 +898,10 @@ const inputsToWatch = [
 
         const OMBRE_FONCEE = 'rgba(0, 0, 0, 0.45)'; 
         const OMBRE_CLAIRE = 'rgba(255, 255, 255, 0.3)'; 
-        const OMBRE_TAILLE = Math.round(Math.max(1, LARGEUR_JOINT_H_PX * 0.2)); 
+        const OMBRE_TAILLE = Math.max(1, LARGEUR_JOINT_H_PX * 0.2); 
         const JOINT_CONCAVE_OMBRE = 'rgba(0, 0, 0, 0.2)'; 
         const JOINT_CONCAVE_CLAIRE = 'rgba(255, 255, 255, 0.1)';
-        const JOINT_CONCAVE_LIGNE_PX = Math.round(Math.max(1, LARGEUR_JOINT_H_PX * 0.4)); 
+        const JOINT_CONCAVE_LIGNE_PX = Math.max(1, LARGEUR_JOINT_H_PX * 0.4); 
         
         if (typeJoint === 'demi-rond' && appareillage !== 'moucharabieh') {
             for (let y = 0; y < height + LARGEUR_JOINT_H_PX; y += (HAUTEUR_BRIQUE_PX + LARGEUR_JOINT_H_PX)) {
