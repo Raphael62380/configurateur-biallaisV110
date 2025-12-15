@@ -74,9 +74,10 @@
                 <p class="section-instruction">Sélectionner votre (ou vos) couleur(s)</p>
                 
                 <div style="font-size: 0.85rem; color: #555; background-color: #f1f8ff; padding: 10px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #007bff; line-height: 1.4;">
-                    <strong>ℹ️ Note :</strong> Si plusieurs coloris sont choisis, ils seront répartis de manière <strong>aléatoire</strong>.<br>
-                    Pour créer des <strong>lignages précis</strong> (bandeaux de couleur et/ou d'aspect différents), utilisez l'option <em>"Forcer une ligne spécifique"</em> disponible plus bas dans la section <strong>3. Finition(s)</strong>, sélectionnez alors la couleur principale de votre projet.
+                    <strong>ℹ️ Note :</strong> Si plusieurs coloris sont choisis, ils seront répartis aléatoirement.<br>
+                    Pour créer des <strong>lignages précis</strong>, utilisez l'option <em>"Forcer une ligne spécifique"</em> plus bas.
                 </div>
+
                 <div id="select-couleur">
                     <div class="standard-colors-wrapper">
                         <span class="standard-colors-label">Coloris Standards</span>
@@ -158,7 +159,7 @@
                             </select>
                         </div>
                         
-<div style="display: flex; gap: 5px; margin-top: 5px;">
+                        <div style="display: flex; gap: 5px; margin-top: 5px;">
                             <select id="new-line-joint" class="form-control small-input" style="flex: 1;">
                                 <option value="">Joint vertical de la ligne forcée (Global)</option>
                                 <option value="joint_grisclair.png">Gris Clair</option>
@@ -208,7 +209,7 @@
             </div>
 
             <details class="advanced-settings-container">
-                <summary class="advanced-summary">⚙️ Paramètres Avancés (Appareillage, Joints)</summary>
+                <summary class="advanced-summary">⚙️ Paramètres Avancés (Appareillage, Joints, Relief)</summary>
                 <div class="advanced-content">
                     <div class="config-section">
                         <label class="sub-label">Appareillage :</label>
@@ -239,6 +240,53 @@
                             <span id="slider-joint-v-valeur">10 mm</span>
                         </div>
                     </div>
+                    
+                    <div class="config-section" style="border-top:1px dashed #eee; margin-top:15px; padding-top:15px;">
+                        <label class="sub-label">Effet de Profondeur (Relief) :</label>
+                        
+                        <select id="select-relief-type" class="form-control" style="margin-bottom:10px;">
+                            <option value="none">Aucun (Mur plat)</option>
+                            <option value="random-out">Aléatoire : Briques en Saillie (Avancées)</option>
+                            <option value="random-in">Aléatoire : Briques en Retrait (Reculées)</option>
+                            <option value="random-mix">Aléatoire : Mixte (Avancées + Reculées)</option>
+                        </select>
+
+                        <div class="slider-container" id="container-relief-percent" style="display:none;">
+                            <label for="slider-relief-percent" style="width:140px;">Proportion :</label>
+                            <input type="range" id="slider-relief-percent" min="0" max="50" value="10" step="5">
+                            <span id="slider-relief-valeur">10%</span>
+                        </div>
+                        
+                        <div id="container-relief-color" style="display:none; margin-top:10px; padding-top:10px; border-top:1px dotted #ccc;">
+                            <label class="sub-label">Apparence de la saillie :</label>
+                            
+                            <div style="display:flex; gap:10px;">
+                                <select id="select-relief-color" class="form-control" style="flex:1;">
+                                    <option value="auto" selected>🎨 Couleur (Auto)</option>
+                                    <option value="blanc">Blanc</option>
+                                    <option value="tonpierre">Ton Pierre</option>
+                                    <option value="jaune">Jaune</option>
+                                    <option value="saumon">Saumon</option>
+                                    <option value="rouge">Rouge</option>
+                                    <option value="chocolat">Chocolat</option>
+                                    <option value="brun">Brun</option>
+                                    <option value="grisclair">Gris Clair</option>
+                                    <option value="grisfonce">Gris Foncé</option>
+                                    <option value="anthracite">Anthracite</option>
+                                    <option value="superblanc">Super Blanc</option>
+                                    <option value="bleu">Bleu</option>
+                                    <option value="vert">Vert</option>
+                                </select>
+
+                                <select id="select-relief-finish" class="form-control" style="width:140px;">
+                                    <option value="auto" selected>🧱 Finition (Auto)</option>
+                                    <option value="lisse">Lisse</option>
+                                    <option value="roc">Roc</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
             </details>
 
@@ -296,27 +344,49 @@
             
             <div class="tech-summary" id="tech-summary" style="display:none;">
                 <h4>📊 Estimation Technique</h4>
+                
+                <div class="project-surface-input" style="margin-bottom: 15px; background: #e7f1ff; padding: 10px; border-radius: 5px; border: 1px solid #b6d4fe;">
+                    <label for="user-global-surface" style="font-weight:bold; color:#0d6efd; display:block; margin-bottom:5px;">Votre Surface Totale (m²) :</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="number" id="user-global-surface" placeholder="Ex: 100" class="form-control" style="font-weight:bold;">
+                        <span style="align-self:center; font-weight:bold; color:#0d6efd;">m²</span>
+                    </div>
+                    <small style="color:#666; font-size:0.8rem;">(Laissez vide pour utiliser la surface de l'aperçu)</small>
+                </div>
+
                 <div class="summary-grid">
                     <div class="sum-item">
-                        <span class="sum-label">Surface :</span>
+                        <span class="sum-label">Surface Calculée :</span>
                         <span class="sum-value" id="sum-surface">0 m²</span>
                     </div>
                     <div class="sum-item">
-                        <span class="sum-label">Nb. Éléments (approx) :</span>
+                        <span class="sum-label">Total Éléments :</span>
                         <span class="sum-value" id="sum-briques">0</span>
                     </div>
                 </div>
+                
                 <table class="distribution-table">
                     <thead>
                         <tr>
-                            <th>Couleur</th>
+                            <th>Produit</th>
                             <th>%</th>
-                            <th>Qté (est.)</th>
+                            <th>Surface</th>
+                            <th>Qté</th>
                         </tr>
                     </thead>
                     <tbody id="distribution-body">
                     </tbody>
                 </table>
+
+                <div id="mortier-section" style="margin-top: 15px; background-color: #f1f3f5; padding: 12px; border-radius: 6px; border-left: 5px solid #6c757d;">
+                    <h5 style="margin: 0 0 10px 0; color: #495057; font-size: 0.95rem; display:flex; align-items:center; gap:8px;">
+                        🧱 Consommation Mortier (Joints)
+                    </h5>
+                    <div id="mortier-details-list" style="font-size: 0.9rem;">
+                        </div>
+                    <small style="display:block; margin-top:5px; color:#888; font-size:0.75rem;">*Variable selon l'épaisseur réelle des joints sur chantier.</small>
+                </div>
+
                 <small class="disclaimer">*Quantités données à titre indicatif hors pertes et découpes.</small>
             </div>
         </div>
