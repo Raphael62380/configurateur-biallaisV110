@@ -1168,5 +1168,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // PAS DE DEMARRAGE AUTO (On attend le clic)
     // setTimeout(triggerAutoUpdate, 500); 
+// =========================================================
+    // 10. GESTION RESPONSIVE : DÉPLACEMENT DE L'ESTIMATION
+    // =========================================================
+    
+    function gererPlacementEstimation() {
+        const isMobile = window.innerWidth <= 900;
+        const techSummary = document.getElementById('tech-summary');
+        const configPanel = document.querySelector('.config-panel');
+        const previewPanel = document.querySelector('.preview-panel');
+        const exportSection = document.querySelector('.export-section');
+
+        if (!techSummary || !configPanel || !previewPanel || !exportSection) return;
+
+        if (isMobile) {
+            // SUR MOBILE : On déplace l'estimation dans le panneau de config, AVANT les boutons d'export
+            if (techSummary.parentElement !== configPanel) {
+                configPanel.insertBefore(techSummary, exportSection);
+            }
+        } else {
+            // SUR DESKTOP : On remet l'estimation dans le panneau de prévisualisation (à la fin)
+            if (techSummary.parentElement !== previewPanel) {
+                previewPanel.appendChild(techSummary);
+            }
+        }
+    }
+
+    // On lance la fonction au chargement...
+    gererPlacementEstimation();
+
+    // ... et à chaque fois qu'on redimensionne la fenêtre (passage portrait/paysage)
+    window.addEventListener('resize', gererPlacementEstimation);
+
+    // =========================================================
 
 });
