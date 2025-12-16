@@ -303,7 +303,7 @@ details[open] .advanced-summary::after { content: '-'; }
 #sub-palette-rouge .custom-option span { font-size: 0.65rem !important; white-space: normal !important; line-height: 1.1 !important; }
 
 /* -------------------------------------------------------- */
-/* ZONE MOBILE (TOUJOURS EN DERNIER POUR SURCHARGER LE RESTE) */
+/* ZONE MOBILE (VERSION 4.9 CORRIGÉE) */
 /* -------------------------------------------------------- */
 @media (max-width: 900px) {
     .app-wrapper { flex-direction: column; gap: 0; padding: 0; display: flex; }
@@ -326,7 +326,7 @@ details[open] .advanced-summary::after { content: '-'; }
     #btn-add-rule { flex: 3 1 auto !important; width: auto !important; }
     #btn-reset-rules { flex: 0 0 50px !important; width: 50px !important; }
 
-    /* --- MENU ROUGE MOBILE (CORRIGÉ & FORCE) --- */
+    /* --- MENU ROUGE MOBILE (CORRIGÉ & CALIBRÉ) --- */
     #btn-open-rouges {
         display: none !important;
     }
@@ -335,6 +335,7 @@ details[open] .advanced-summary::after { content: '-'; }
         display: block !important;
         position: static !important;
         width: 100% !important;
+        max-width: 100vw !important; /* Empêche le dépassement de page */
         box-shadow: none !important;
         border: none !important;
         background: transparent !important;
@@ -342,6 +343,7 @@ details[open] .advanced-summary::after { content: '-'; }
         transform: none !important;
         margin-top: 5px;
         margin-bottom: 10px;
+        overflow: hidden; /* Sécurité supplémentaire */
     }
 
     #sub-palette-rouge .custom-grid-list {
@@ -352,6 +354,7 @@ details[open] .advanced-summary::after { content: '-'; }
         padding-bottom: 5px;
         grid-template-columns: none !important;
         -webkit-overflow-scrolling: touch;
+        padding-left: 2px; /* Petit espace pour l'ombre */
     }
 
     #sub-palette-rouge .custom-option {
@@ -360,17 +363,26 @@ details[open] .advanced-summary::after { content: '-'; }
         height: 85px !important;
         flex: 0 0 auto;
         border-color: #ef9a9a;
+        overflow: hidden; /* Coupe ce qui dépasse */
     }
 
+    /* CORRECTION DE LA TAILLE DES TEXTURES ROUGES */
     #sub-palette-rouge .custom-option img {
         height: 35px !important;
+        width: 100% !important;
         margin-bottom: 5px !important;
+        
+        /* C'est ici que la magie opère : on annule le zoom excessif */
+        transform: scale(1) !important; 
+        object-fit: contain !important; /* L'image rentre entièrement dans la case */
+        background-color: transparent !important;
     }
 
     #sub-palette-rouge .custom-option span {
         font-size: 0.55rem !important;
         line-height: 1 !important;
         height: 30px !important;
+        white-space: normal !important;
     }
 
     /* --- CORRECTION OPTIONS RELIEF 3D SUR MOBILE --- */
