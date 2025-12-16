@@ -944,8 +944,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // STATS
                 if (couleurName && finitionName) {
-                // STATS
-                if (couleurName && finitionName) {
                     const statKey = `${couleurName}|${finitionName}`;
                     statsReal[statKey] = (statsReal[statKey] || 0) + 1;
                 }

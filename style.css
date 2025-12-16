@@ -59,6 +59,9 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
     display: flex;
     flex-direction: column;
     font-size: 1rem; 
+    /* SECURITÉ CLIC : On s'assure que le panneau est au-dessus de l'écran d'accueil */
+    position: relative;
+    z-index: 50; 
 }
 
 .resizer {
@@ -247,7 +250,7 @@ details[open] .advanced-summary::after { content: '-'; }
     flex-direction: column; 
     justify-content: center; 
     align-items: center; 
-    z-index: 10; /* DEVANT le canvas */
+    z-index: 10; 
     border-radius: 8px; 
     overflow: hidden;
 }
@@ -283,6 +286,25 @@ details[open] .advanced-summary::after { content: '-'; }
 .distribution-table { font-size: 0.9rem; width: 100%; }
 .distribution-table td, .distribution-table th { padding: 5px; }
 
+.grab-cursor { cursor: grab; }
+.grabbing-cursor { cursor: grabbing !important; }
+
+/* STYLE MENU DÉROULANT (VERSION BUREAU) */
+.category-trigger { position: relative; transition: all 0.2s ease; z-index: 10; }
+.category-trigger:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+#sub-palette-rouge { display: none; position: absolute; top: 110%; left: 50%; transform: translateX(-50%); width: 280px; background-color: #ffffff; border: 1px solid #ef9a9a; border-radius: 12px; padding: 10px; box-shadow: 0 10px 25px rgba(198, 40, 40, 0.25); z-index: 1000; cursor: default; }
+#sub-palette-rouge::after { content: ""; position: absolute; bottom: 100%; left: 50%; margin-left: -8px; border-width: 8px; border-style: solid; border-color: transparent transparent #ffffff transparent; }
+#sub-palette-rouge::before { content: ""; position: absolute; bottom: 100%; left: 50%; margin-left: -9px; border-width: 9px; border-style: solid; border-color: transparent transparent #ef9a9a transparent; }
+.pop-in { animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+@keyframes popIn { from { opacity: 0; transform: translateX(-50%) scale(0.8) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); } }
+#sub-palette-rouge .custom-grid-list { grid-template-columns: repeat(3, 1fr); gap: 5px; }
+#sub-palette-rouge .custom-option { height: 100px !important; min-height: 100px !important; justify-content: center; }
+#sub-palette-rouge .custom-option img { height: 50px !important; width: 100%; object-fit: cover; background-color: transparent; margin-bottom: 8px; }
+#sub-palette-rouge .custom-option span { font-size: 0.65rem !important; white-space: normal !important; line-height: 1.1 !important; }
+
+/* -------------------------------------------------------- */
+/* ZONE MOBILE (TOUJOURS EN DERNIER POUR SURCHARGER LE RESTE) */
+/* -------------------------------------------------------- */
 @media (max-width: 900px) {
     .app-wrapper { flex-direction: column; gap: 0; padding: 0; display: flex; }
     .resizer { display: none; } 
@@ -304,73 +326,64 @@ details[open] .advanced-summary::after { content: '-'; }
     #btn-add-rule { flex: 3 1 auto !important; width: auto !important; }
     #btn-reset-rules { flex: 0 0 50px !important; width: 50px !important; }
 
-    /* --- MODIFICATIONS SPECIALES MOBILE POUR LES ROUGES --- */
-
-    /* 1. On cache le bouton "Gamme Rouges" (car on va afficher le contenu directement) */
+    /* --- MENU ROUGE MOBILE (CORRIGÉ & FORCE) --- */
     #btn-open-rouges {
         display: none !important;
     }
 
-    /* 2. On force l'affichage du tiroir et on annule le style "pop-up" */
     #sub-palette-rouge {
-        display: block !important;   /* Visible tout le temps */
-        position: static !important; /* Revient dans le flux normal de la page */
+        display: block !important;
+        position: static !important;
         width: 100% !important;
         box-shadow: none !important;
         border: none !important;
         background: transparent !important;
         padding: 5px 0 !important;
-        transform: none !important;  /* Annule l'animation */
+        transform: none !important;
         margin-top: 5px;
         margin-bottom: 10px;
     }
 
-    /* 3. On crée le défilement horizontal (Scroll) sur une seule ligne */
     #sub-palette-rouge .custom-grid-list {
-        display: flex !important;       /* Mode ligne */
-        flex-wrap: nowrap !important;   /* Interdit le passage à la ligne */
-        overflow-x: auto !important;    /* Active le scroll horizontal */
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
         gap: 8px;
-        padding-bottom: 5px;            /* Petit espace pour le doigt */
-        grid-template-columns: none !important; /* Annule la grille */
-        -webkit-overflow-scrolling: touch; /* Scroll fluide sur iPhone */
+        padding-bottom: 5px;
+        grid-template-columns: none !important;
+        -webkit-overflow-scrolling: touch;
     }
 
-    /* 4. On réduit la taille des vignettes pour qu'elles soient mignonnes et compactes */
     #sub-palette-rouge .custom-option {
-        min-width: 70px !important;  /* Largeur fixe petite */
+        min-width: 70px !important;
         width: 70px !important;
-        height: 85px !important;     /* Hauteur réduite */
-        flex: 0 0 auto;              /* Empêche l'écrasement */
-        border-color: #ef9a9a;       /* Petit rappel rouge sur la bordure */
+        height: 85px !important;
+        flex: 0 0 auto;
+        border-color: #ef9a9a;
     }
 
-    /* 5. Image plus petite */
     #sub-palette-rouge .custom-option img {
         height: 35px !important;
         margin-bottom: 5px !important;
     }
 
-    /* 6. Texte plus petit */
     #sub-palette-rouge .custom-option span {
         font-size: 0.55rem !important;
         line-height: 1 !important;
         height: 30px !important;
     }
+
+    /* --- CORRECTION OPTIONS RELIEF 3D SUR MOBILE --- */
+    #container-relief-out-options > div, 
+    #container-relief-in-options > div {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+    #select-relief-finish, 
+    #select-relief-in-finish,
+    #select-relief-color,
+    #select-relief-in-color {
+        width: 100% !important;
+        flex: none !important;
+    }
 }
-
-.grab-cursor { cursor: grab; }
-.grabbing-cursor { cursor: grabbing !important; }
-
-/* STYLE MENU DÉROULANT */
-.category-trigger { position: relative; transition: all 0.2s ease; z-index: 10; }
-.category-trigger:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-#sub-palette-rouge { display: none; position: absolute; top: 110%; left: 50%; transform: translateX(-50%); width: 280px; background-color: #ffffff; border: 1px solid #ef9a9a; border-radius: 12px; padding: 10px; box-shadow: 0 10px 25px rgba(198, 40, 40, 0.25); z-index: 1000; cursor: default; }
-#sub-palette-rouge::after { content: ""; position: absolute; bottom: 100%; left: 50%; margin-left: -8px; border-width: 8px; border-style: solid; border-color: transparent transparent #ffffff transparent; }
-#sub-palette-rouge::before { content: ""; position: absolute; bottom: 100%; left: 50%; margin-left: -9px; border-width: 9px; border-style: solid; border-color: transparent transparent #ef9a9a transparent; }
-.pop-in { animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-@keyframes popIn { from { opacity: 0; transform: translateX(-50%) scale(0.8) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); } }
-#sub-palette-rouge .custom-grid-list { grid-template-columns: repeat(3, 1fr); gap: 5px; }
-#sub-palette-rouge .custom-option { height: 100px !important; min-height: 100px !important; justify-content: center; }
-#sub-palette-rouge .custom-option img { height: 50px !important; width: 100%; object-fit: cover; background-color: transparent; margin-bottom: 8px; }
-#sub-palette-rouge .custom-option span { font-size: 0.65rem !important; white-space: normal !important; line-height: 1.1 !important; }
