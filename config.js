@@ -691,10 +691,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 configsToLoad.forEach(cfg => {
                     let cols = (cfg.col !== 'auto') ? [cfg.col] : []; 
                     let fins = (cfg.fin !== 'auto') ? [cfg.fin] : ['lisse', 'roc']; 
+                    
                     cols.forEach(c => {
                         fins.forEach(f => {
+                             // CORRECTION : Si la couleur interdit le Roc, on force le chargement du Lisse
+                             let finishToLoad = f;
+                             if (f === 'roc' && NO_ROC_COLORS.includes(c)) {
+                                 finishToLoad = 'lisse';
+                             }
+                             
                              for(let i=1; i<=NOMBRE_VARIATIONS; i++) {
-                                 const name = `${c}_${f}_${i}.png`;
+                                 const name = `${c}_${finishToLoad}_${i}.png`;
                                  if (!listeACharger.includes(name)) listeACharger.push(name);
                              }
                         });
@@ -926,7 +933,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (reliefInColor && reliefInColor !== 'auto') couleurName = reliefInColor;
                     if (reliefInFinish && reliefInFinish !== 'auto') finitionName = reliefInFinish;
                 }
+                // =========================================================
+                // SECURITÉ CRITIQUE : FORCE LE LISSE SI LA COULEUR INTERDIT LE ROC
+                // (Empêche le bug d'affichage sur les Terres Cuites / Rouges)
+                // =========================================================
+                if (finitionName === 'roc' && NO_ROC_COLORS.includes(couleurName)) {
+                    finitionName = 'lisse';
+                }
+                // =========================================================
 
+                // STATS
+                if (couleurName && finitionName) {
                 // STATS
                 if (couleurName && finitionName) {
                     const statKey = `${couleurName}|${finitionName}`;
