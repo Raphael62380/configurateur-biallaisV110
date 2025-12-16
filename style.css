@@ -8,7 +8,6 @@
     --border-color: #dee2e6;
 }
 
-/* 1. Base stricte + Police Standardisée */
 html, body {
     margin: 0; padding: 0;
     overflow-x: clip; 
@@ -17,12 +16,9 @@ html, body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
-    
-    /* ICI : On force une taille de base lisible (16px) */
     font-size: 16px; 
 }
 
-/* 2. En-tête */
 .site-header {
     width: 100%;
     box-sizing: border-box;
@@ -36,61 +32,46 @@ html, body {
     text-align: center;
     margin-bottom: 20px;
 }
-
 .main-logo { max-height: 100px; width: auto; }
 h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
 
-/* LAYOUT GLOBAL */
 .app-wrapper {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
     padding: 0 20px 40px;
     margin: 0 auto;
-    
     display: flex;
     flex-wrap: nowrap;
-    
-    /* C'EST LA LIGNE MAGIQUE : */
-   align-items: flex-start; /* INDISPENSABLE */
+    align-items: flex-start;
     overflow: visible !important;
 }
-/* --- COLONNE GAUCHE (CONFIG) --- */
+
 .config-panel {
-    /* MODIFICATION ICI : On passe de 400px à 40% */
     width: 40%; 
-    flex: 0 0 40%; /* Force le panneau à occuper 40% de l'espace flex */
-    
-    /* On garde une sécurité pour ne pas que ce soit trop petit sur tablette */
+    flex: 0 0 40%;
     min-width: 320px; 
-    
-    /* On augmente le maximum pour vous laisser la liberté d'agrandir si besoin */
     max-width: 80%; 
-    
     background: var(--panel-bg);
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     display: flex;
     flex-direction: column;
-    
     font-size: 1rem; 
 }
 
-/* --- LA POIGNÉE DE REDIMENSIONNEMENT (NOUVEAU) --- */
 .resizer {
     background-color: transparent;
-    cursor: col-resize; /* Curseur flèche gauche-droite */
-    width: 20px; /* Zone cliquable large */
-    margin: 0 -10px; /* Centré visuellement */
+    cursor: col-resize;
+    width: 20px;
+    margin: 0 -10px;
     z-index: 10;
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
 }
-
-/* Petite ligne visuelle au centre du resizer */
 .resizer::after {
     content: "";
     width: 4px;
@@ -105,27 +86,17 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
     flex: 1; 
     min-width: 400px; 
     margin-left: 10px; 
-    
-    /* Le panneau reste collé en haut */
     position: -webkit-sticky; 
     position: sticky;
     top: 10px;
-    
-    /* Il fait la hauteur de l'écran */
     height: calc(100vh - 20px);
-    
-    /* C'EST ICI QUE ÇA SE JOUE : */
-    /* Si le contenu est plus grand que l'écran, on scroll DEDANS */
     overflow-y: auto; 
-    
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    
-    /* On enlève les styles flexbox compliqués */
     display: block; 
 }
-/* LE RESTE DU CSS RESTE IDENTIQUE... */
+
 .config-section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
 .config-section:last-of-type { border-bottom: none; padding-bottom: 0; }
 .section-title { display: block; font-weight: 700; margin-bottom: 15px; font-size: 1.1rem; color: #2c3e50; }
@@ -133,26 +104,76 @@ h1 { margin: 10px 0 0; font-size: 1.5rem; color: #444; }
 .form-control { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 1rem; background-color: #fff; box-sizing: border-box;}
 .custom-grid-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .custom-select-list { display: flex; flex-wrap: wrap; gap: 12px; }
-.custom-option { border: 2px solid #eee; border-radius: 8px; padding: 5px; cursor: pointer; text-align: center; transition: all 0.2s; background: #fff; display: flex; flex-direction: column; align-items: center; height: 100px; position: relative; overflow: hidden; }
+
+/* VIGNETTES */
+.custom-option { 
+    height: 100px !important;
+    min-height: 100px !important;
+    max-height: 100px !important;
+    border: 2px solid #eee; 
+    border-radius: 8px; 
+    padding: 4px; 
+    cursor: pointer; 
+    text-align: center; 
+    transition: all 0.2s; 
+    background: #fff; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    position: relative; 
+    overflow: hidden; 
+}
 .custom-option:hover { transform: translateY(-3px); border-color: #ccc; }
 .custom-option:active { transform: scale(0.95); }
-.custom-option img { width: 100%; height: 50px; object-fit: contain; border-radius: 4px; margin-bottom: 5px; background-color: #f9f9f9; }
-#select-couleur .custom-option img { height: 70px; width: 100%; object-fit: cover; transform: scale(1.7); transform-origin: center center; background-color: transparent !important;}
-.custom-option span { font-size: 0.75rem; line-height: 1.2; color: #555; font-weight: 500; }
+
+.custom-option img { 
+    width: 100%; 
+    height: 45px !important; 
+    object-fit: contain; 
+    border-radius: 4px; 
+    margin-bottom: 8px; 
+    background-color: #f9f9f9; 
+    flex-shrink: 0; 
+}
+#select-couleur .custom-option img { 
+    height: 50px !important; 
+    width: 100%; 
+    object-fit: cover; 
+    transform: scale(1.7); 
+    transform-origin: center center; 
+    background-color: transparent; 
+    margin-bottom: 8px; 
+}
+
+.custom-option span { 
+    font-size: 0.65rem !important; 
+    line-height: 1.1 !important;   
+    color: #555; 
+    font-weight: 600; 
+    white-space: normal !important; 
+    word-wrap: break-word;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 35px;
+    width: 100%;
+}
+
 .custom-option.selected { border-color: var(--accent-color); background-color: #e7f1ff; box-shadow: 0 0 0 2px var(--accent-color); }
 .custom-option.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(100%); background-color: #f0f0f0; }
 .info-box { margin-top: 15px; padding: 12px; background-color: #fff3cd; border: 1px solid #ffeeba; border-left: 5px solid #ffc107; border-radius: 4px; color: #856404; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
 .info-box svg { flex-shrink: 0; width: 24px; height: 24px; fill: #ffc107; }
+
 .advanced-settings-container { margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
 .advanced-summary { padding: 15px; background-color: #f1f3f5; font-weight: bold; color: #495057; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; }
 .advanced-summary::after { content: '+'; font-size: 1.2rem; font-weight: bold; }
 details[open] .advanced-summary::after { content: '-'; }
 .advanced-content { padding: 15px; background-color: #fff; border-top: 1px solid var(--border-color); }
+
 .rule-builder { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
 .form-control.small-input { padding: 5px; font-size: 0.85rem; height: 38px; }
 .btn-mini { background-color: var(--accent-color); color: white; border: none; border-radius: 4px; width: 40px; height: 38px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-/* NOUVEAU STYLE POUR LE BOUTON RESET */
 .btn-danger { background-color: #dc3545; }
 .btn-danger:hover { background-color: #c82333; }
 
@@ -163,36 +184,50 @@ details[open] .advanced-summary::after { content: '-'; }
 .slider-container input[type=range] { flex: 1; }
 .slider-container span { min-width: 30px; text-align: right; font-weight: bold; color: var(--primary-color); }
 .btn-primary { display: block; width: 100%; padding: 15px; background-color: var(--primary-color); color: white; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
 .export-section { margin-top: 20px; padding-top: 20px; border-top: 2px dashed #eee; text-align: center; }
 .export-buttons-row { display: flex; gap: 10px; justify-content: center; }
 .btn-secondary { flex: 1; padding: 10px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+
 .canvas-container-wrapper { 
-    /* On remet en relatif (pas de superposition) */
     position: relative; 
     background-color: white; 
     padding: 0;
     border: none;
     border-radius: 8px 8px 0 0; 
-    
     width: 100%;
-    
-    /* HAUTEUR MINIMUM FORCÉE */
-    /* C'est ça qui garantit que votre rendu est GRAND */
     min-height: 500px; 
-    
-    /* Si l'écran est géant, l'image peut grandir encore */
     height: auto; 
-    
     display: flex; 
     align-items: center; 
     justify-content: center; 
     overflow: hidden; 
-    
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
+    z-index: 1;
 }
-#apercuCanvas { max-width: 100%; max-height: 100%; height: auto; width: auto; object-fit: contain; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+#apercuCanvas { 
+    max-width: 100%; max-height: 100%; height: auto; width: auto; object-fit: contain; box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+    position: relative;
+    z-index: 5;
+    display: block; 
+}
+#wall-pattern-layer {
+    display: none; 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300vmax; 
+    height: 300vmax;
+    background-repeat: repeat;
+    background-position: center; 
+    transform-origin: center center;
+    transform: translate(-50%, -50%); 
+    z-index: 20; 
+    pointer-events: none; 
+}
+
 .preview-info { text-align: center; margin-top: 25px; color: #999; position: relative; z-index: 10; }
 .preview-toolbar { background-color: #f8f9fa; border: 1px solid var(--border-color); border-top: 1px solid #eee; border-radius: 0 0 8px 8px; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
 .toolbar-group { display: flex; align-items: center; gap: 10px; }
@@ -202,10 +237,25 @@ details[open] .advanced-summary::after { content: '-'; }
 #loading-overlay.hidden { display: none !important; }
 .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-#initial-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 4; border-radius: 8px; }
+
+/* --- ECRAN D'ACCUEIL (CORRECTION SUPERPOSITION) --- */
+#initial-overlay { 
+    position: absolute; 
+    top: 0; left: 0; right: 0; bottom: 0; 
+    background-color: #ffffff; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 10; /* DEVANT le canvas */
+    border-radius: 8px; 
+    overflow: hidden;
+}
 #initial-overlay.hidden { display: none !important; }
-.logo-attente { width: 200px; height: auto; margin-bottom: 15px; opacity: 0.8; }
-#initial-overlay p { color: #999; font-size: 0.9rem; font-style: italic; margin: 0; }
+#initial-overlay video.logo-attente { display: block !important; width: 200px; height: auto; margin-bottom: 20px; opacity: 0.9; border: none !important; outline: none !important; background: transparent !important; box-shadow: none !important; }
+#initial-overlay p { display: block !important; color: #999; font-size: 0.9rem; line-height: 1.5; font-style: italic; margin: 0; text-align: center; }
+#initial-overlay > *:not(video):not(p) { display: none !important; }
+
 .special-colors-wrapper { margin-top: 25px; border: 2px dashed #3498db; border-radius: 8px; padding: 20px 10px 10px 10px; position: relative; background-color: #f0f8ff; }
 .special-colors-label { position: absolute; top: -12px; left: 15px; background-color: #f0f8ff; padding: 0 10px; color: #3498db; font-weight: bold; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
 .standard-colors-wrapper { margin-top: 15px; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px 10px 10px 10px; position: relative; background-color: #fff; }
@@ -213,24 +263,19 @@ details[open] .advanced-summary::after { content: '-'; }
 .section-instruction { margin-top: -10px; margin-bottom: 15px; color: #888; font-size: 0.9rem; font-style: italic; }
 .version-label { text-align: center; font-size: 0.75rem; color: #b0b0b0; margin-top: 20px; font-family: monospace; opacity: 0.7; }
 .version-label:hover { opacity: 1; color: #666; }
+
+/* ESTIMATION TECHNIQUE (FORCE VISIBLE) */
 .tech-summary { 
-    /* On annule la position absolue (overlay) */
     position: relative; 
-    bottom: auto; left: auto; right: auto;
-    
     background: #fff; 
     border-top: 1px solid #e1e4e8;
     padding: 15px;
-    
-    /* Plus de limite de hauteur, on affiche tout */
     max-height: none; 
     overflow: visible;
-    
     z-index: 1;
     box-shadow: none;
+    display: block !important; 
 }
-
-/* On remet un style aéré */
 .tech-summary h4 { margin-top: 0; margin-bottom: 10px; font-size: 1rem; }
 .summary-grid { display: flex; gap: 20px; margin-bottom: 15px; }
 .sum-label { font-size: 0.8rem; }
@@ -238,115 +283,40 @@ details[open] .advanced-summary::after { content: '-'; }
 .distribution-table { font-size: 0.9rem; width: 100%; }
 .distribution-table td, .distribution-table th { padding: 5px; }
 
-/* MOBILE SPÉCIFIQUE */
 @media (max-width: 900px) {
     .app-wrapper { flex-direction: column; gap: 0; padding: 0; display: flex; }
     .resizer { display: none; } 
     .preview-panel { order: -1; position: -webkit-sticky; position: sticky; top: 0; z-index: 1000; background: #fff; border-bottom: 2px solid #eee; width: 100%; min-width: 0; padding-bottom: 5px; margin: 0; }
-    
-    /* On s'assure que le panneau de config ne dépasse jamais la largeur de l'écran */
-    .config-panel { 
-        order: 2; 
-        padding: 15px; 
-        box-shadow: none; 
-        border-radius: 0; 
-        flex: auto; 
-        width: 100%; 
-        max-width: 100vw; /* Force la largeur max à la vue écran */
-        box-sizing: border-box; /* Inclut le padding dans la largeur */
-        overflow-x: hidden; /* Empêche le débordement horizontal interne */
-    }
-
+    .config-panel { order: 2; padding: 15px; box-shadow: none; border-radius: 0; flex: auto; width: 100%; max-width: 100vw; box-sizing: border-box; overflow-x: hidden; }
     .canvas-container-wrapper { min-height: 220px; width: 100%; border: none; border-radius: 0; }
     .preview-toolbar { padding: 5px 10px; border-radius: 0; border-top: 1px solid #eee; }
-    .preview-info, .tech-summary { display: none !important; }
+    .preview-info { display: none !important; }
     .custom-grid-list { grid-template-columns: repeat(2, 1fr); }
     canvas, img { max-width: 100%; height: auto; display: block; }
-
-    /* --- CORRECTIFS POUR ÉVITER QUE LE CONTENU SOIT COUPÉ --- */
-
-    /* 1. Corriger les boites d'info (bleues/jaunes) pour qu'elles passent à la ligne */
-    .info-box, 
-    #container-produit .info-box, 
-    #msg-astuce-roc {
-        flex-direction: column; /* Icone au dessus du texte */
-        align-items: flex-start;
-        height: auto;
-        white-space: normal; /* Autorise le texte à aller à la ligne */
-    }
-    .info-box span {
-        width: 100%;
-        display: block;
-    }
-
-    /* 2. Corriger le constructeur de lignes (Rule Builder) */
-    /* On force les lignes flexibles à passer à la ligne suivante si pas de place */
-    .rule-builder > div {
-        flex-wrap: wrap !important; 
-        gap: 8px !important;
-    }
-
-    /* On annule les largeurs fixes (160px, 120px) définies dans le HTML */
-    .rule-builder input,
-    .rule-builder select,
-    .rule-builder button {
-        width: auto !important; /* Écrase le style inline */
-        min-width: 0;
-    }
-
-    /* -- Ligne 1 : Numéro, Finition, Couleur -- */
-    /* On met Numéro et Finition côte à côte */
+    .info-box, #container-produit .info-box, #msg-astuce-roc { flex-direction: column; align-items: flex-start; height: auto; white-space: normal; }
+    .info-box span { width: 100%; display: block; }
+    .rule-builder > div { flex-wrap: wrap !important; gap: 8px !important; }
+    .rule-builder input, .rule-builder select, .rule-builder button { width: auto !important; min-width: 0; }
     #new-line-number { flex: 1 1 40% !important; } 
     #new-line-finish { flex: 1 1 40% !important; }
-    /* La couleur prend toute la largeur en dessous */
-    #new-line-color { 
-        flex: 1 1 100% !important; 
-        margin-top: 2px;
-    }
-
-    /* -- Ligne 2 : Joint, Bouton Ajouter, Poubelle -- */
-    /* Le sélecteur de joint prend toute la largeur */
-    #new-line-joint { 
-        flex: 1 1 100% !important; 
-        margin-bottom: 5px;
-    }
-    /* Le bouton AJOUTER prend la place restante */
-    #btn-add-rule { 
-        flex: 3 1 auto !important; 
-        width: auto !important;
-    }
-    /* La poubelle prend juste sa petite place */
-    #btn-reset-rules { 
-        flex: 0 0 50px !important; 
-        width: 50px !important;
-    }
+    #new-line-color { flex: 1 1 100% !important; margin-top: 2px; }
+    #new-line-joint { flex: 1 1 100% !important; margin-bottom: 5px; }
+    #btn-add-rule { flex: 3 1 auto !important; width: auto !important; }
+    #btn-reset-rules { flex: 0 0 50px !important; width: 50px !important; }
 }
-/* CURSEURS POUR LE PAN (NOUVEAU) */
+
 .grab-cursor { cursor: grab; }
 .grabbing-cursor { cursor: grabbing !important; }
-/* --- LE CALQUE MAGIQUE (Répétition & Perspective) --- */
-#wall-pattern-layer {
-    /* 1. Caché par défaut, le JS l'activera avec display: block */
-    display: none; 
-    
-    /* 2. Positionnement Absolu pour se superposer au canvas */
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    
-    /* 3. TAILLE IMMENSE : Il doit dépasser de l'écran pour la 3D */
-    width: 300vmax;  /* 3x la taille de l'écran */
-    height: 300vmax;
-    
-    /* 4. Gestion de l'image de fond */
-    background-repeat: repeat;   /* C'est ça qui fait la "Grande Surface" */
-    background-position: center; 
-    
-    /* 5. Centrage du point de pivot (pour la rotation) */
-    transform-origin: center center;
-    transform: translate(-50%, -50%); /* On le centre parfaitement */
-    
-    /* 6. Ordre d'affichage : Devant le fond blanc, derrière le chargement */
-    z-index: 10; 
-    pointer-events: none; /* Permet de cliquer à travers si besoin */
-}
+
+/* STYLE MENU DÉROULANT */
+.category-trigger { position: relative; transition: all 0.2s ease; z-index: 10; }
+.category-trigger:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+#sub-palette-rouge { display: none; position: absolute; top: 110%; left: 50%; transform: translateX(-50%); width: 280px; background-color: #ffffff; border: 1px solid #ef9a9a; border-radius: 12px; padding: 10px; box-shadow: 0 10px 25px rgba(198, 40, 40, 0.25); z-index: 1000; cursor: default; }
+#sub-palette-rouge::after { content: ""; position: absolute; bottom: 100%; left: 50%; margin-left: -8px; border-width: 8px; border-style: solid; border-color: transparent transparent #ffffff transparent; }
+#sub-palette-rouge::before { content: ""; position: absolute; bottom: 100%; left: 50%; margin-left: -9px; border-width: 9px; border-style: solid; border-color: transparent transparent #ef9a9a transparent; }
+.pop-in { animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+@keyframes popIn { from { opacity: 0; transform: translateX(-50%) scale(0.8) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); } }
+#sub-palette-rouge .custom-grid-list { grid-template-columns: repeat(3, 1fr); gap: 5px; }
+#sub-palette-rouge .custom-option { height: 100px !important; min-height: 100px !important; justify-content: center; }
+#sub-palette-rouge .custom-option img { height: 50px !important; width: 100%; object-fit: cover; background-color: transparent; margin-bottom: 8px; }
+#sub-palette-rouge .custom-option span { font-size: 0.65rem !important; white-space: normal !important; line-height: 1.1 !important; }
