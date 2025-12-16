@@ -303,6 +303,60 @@ details[open] .advanced-summary::after { content: '-'; }
     #new-line-joint { flex: 1 1 100% !important; margin-bottom: 5px; }
     #btn-add-rule { flex: 3 1 auto !important; width: auto !important; }
     #btn-reset-rules { flex: 0 0 50px !important; width: 50px !important; }
+
+    /* --- MODIFICATIONS SPECIALES MOBILE POUR LES ROUGES --- */
+
+    /* 1. On cache le bouton "Gamme Rouges" (car on va afficher le contenu directement) */
+    #btn-open-rouges {
+        display: none !important;
+    }
+
+    /* 2. On force l'affichage du tiroir et on annule le style "pop-up" */
+    #sub-palette-rouge {
+        display: block !important;   /* Visible tout le temps */
+        position: static !important; /* Revient dans le flux normal de la page */
+        width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+        padding: 5px 0 !important;
+        transform: none !important;  /* Annule l'animation */
+        margin-top: 5px;
+        margin-bottom: 10px;
+    }
+
+    /* 3. On crée le défilement horizontal (Scroll) sur une seule ligne */
+    #sub-palette-rouge .custom-grid-list {
+        display: flex !important;       /* Mode ligne */
+        flex-wrap: nowrap !important;   /* Interdit le passage à la ligne */
+        overflow-x: auto !important;    /* Active le scroll horizontal */
+        gap: 8px;
+        padding-bottom: 5px;            /* Petit espace pour le doigt */
+        grid-template-columns: none !important; /* Annule la grille */
+        -webkit-overflow-scrolling: touch; /* Scroll fluide sur iPhone */
+    }
+
+    /* 4. On réduit la taille des vignettes pour qu'elles soient mignonnes et compactes */
+    #sub-palette-rouge .custom-option {
+        min-width: 70px !important;  /* Largeur fixe petite */
+        width: 70px !important;
+        height: 85px !important;     /* Hauteur réduite */
+        flex: 0 0 auto;              /* Empêche l'écrasement */
+        border-color: #ef9a9a;       /* Petit rappel rouge sur la bordure */
+    }
+
+    /* 5. Image plus petite */
+    #sub-palette-rouge .custom-option img {
+        height: 35px !important;
+        margin-bottom: 5px !important;
+    }
+
+    /* 6. Texte plus petit */
+    #sub-palette-rouge .custom-option span {
+        font-size: 0.55rem !important;
+        line-height: 1 !important;
+        height: 30px !important;
+    }
 }
 
 .grab-cursor { cursor: grab; }
