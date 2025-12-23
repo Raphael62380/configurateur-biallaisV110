@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    const APP_VERSION = "v4.5 (Moucharabieh 3D Depth)"; 
+    const APP_VERSION = "v5.0 (Final - Pro 2025)"; 
     const versionDiv = document.getElementById('app-version');
     if(versionDiv) versionDiv.textContent = `Biallais Config - ${APP_VERSION}`;
 
@@ -22,6 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const containerProduit = document.getElementById('container-produit');
     const containerFinition = document.getElementById('container-finition');
     const containerCouleur = document.getElementById('select-couleur'); 
+    
+    // NOUVEAU : Message d'instruction
+    const msgInstruction = document.getElementById('msg-instruction-couleur');
+
     const infoEpaisseurDiv = document.getElementById('info-epaisseur'); 
     const dimensionsInfoSpan = document.getElementById('dimensions-info');
 
@@ -71,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnExportJpg = document.getElementById('btnExportJpg');
     const btnExportPng = document.getElementById('btnExportPng');
     const btnExportPdf = document.getElementById('btnExportPdf');
+    const btnExportCCTP = document.getElementById('btnExportCCTP');
     const msgAstuceRoc = document.getElementById('msg-astuce-roc');
     
     // --- SCÈNES ---
@@ -119,6 +124,17 @@ document.addEventListener('DOMContentLoaded', () => {
         'facade': { img: null, mode: 'pattern', scalePattern: 0.35, css: 'rotateY(0deg)', scaleMobile: 0.25, cssMobile: 'rotateY(0deg)' },
         'jardin': { img: null, mode: 'pattern', scalePattern: 0.3, css: 'perspective(1000px) rotateY(35deg) translate(-50px, 0)', scaleMobile: 0.2, cssMobile: 'perspective(600px) rotateY(20deg) translate(0, 0)' }
     };
+
+    // --- FONCTION POUR GÉRER LE MESSAGE D'INSTRUCTION ---
+    function updateInstructionMessage() {
+        if (!msgInstruction) return;
+        const couleurs = getMultiValues(containerCouleur);
+        if (couleurs.length === 0) {
+            msgInstruction.classList.remove('hidden');
+        } else {
+            msgInstruction.classList.add('hidden');
+        }
+    }
 
     function triggerAutoUpdate() {
         if (autoUpdateTimer) clearTimeout(autoUpdateTimer);
@@ -487,6 +503,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (containerId === 'container-produit') {
                 const val = option.dataset.value;
                 updateEpaisseurText(val); validateRocConstraints(); checkVerticalJointLimit(val); updateMaxRows(); checkAppareillageCompatibility(val); checkReliefCompatibility(val);
+                
+                // MISE A JOUR MESSAGE INSTRUCTION
+                updateInstructionMessage();
             }
             triggerAutoUpdate(); 
         });
@@ -507,7 +526,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 validateRocConstraints();
             }
             
-            checkRocVisibility(); checkColorDistribution(); triggerAutoUpdate(); 
+            checkRocVisibility(); checkColorDistribution(); triggerAutoUpdate();
+            // MISE A JOUR MESSAGE INSTRUCTION
+            updateInstructionMessage(); 
         });
     }
 
@@ -606,12 +627,23 @@ document.addEventListener('DOMContentLoaded', () => {
     function getSingleValue(container) {
         const selected = container.querySelector('.custom-option.selected'); return selected ? selected.dataset.value : 'p1';
     }
+
     function getMultiValues(container) {
-        const values = []; const selected = container.querySelectorAll('.custom-option.selected');
+        const values = []; 
+        const selected = container.querySelectorAll('.custom-option.selected');
         selected.forEach(opt => values.push(opt.dataset.value));
-        if (values.length === 0) { const first = container.querySelector('.custom-option'); if(first) { first.classList.add('selected'); values.push(first.dataset.value); } }
+        
+        // MODIFICATION : On empêche la sélection automatique forcée pour les couleurs
+        if (values.length === 0 && container.id !== 'select-couleur') { 
+            const first = container.querySelector('.custom-option'); 
+            if(first) { 
+                first.classList.add('selected'); 
+                values.push(first.dataset.value); 
+            } 
+        }
         return values;
     }
+
     function chargerImage(src) {
         return new Promise((resolve) => {
             const img = new Image(); img.onload = () => resolve({ src: src, img: img, status: 'ok' }); img.onerror = () => resolve({ src: src, img: null, status: 'error' }); img.src = src;
@@ -629,13 +661,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bouton.addEventListener('click', () => { lancerGenerationMoteur(); });
 
+    // =========================================================
+    // COEUR DU MOTEUR DE GÉNÉRATION (CORRIGÉ & SÉCURISÉ)
+    // =========================================================
     function lancerGenerationMoteur() {
         showLoading();
         
         setTimeout(() => {
+            // 1. D'ABORD : On récupère les couleurs pour vérifier
+            const couleursChoisies = getMultiValues(containerCouleur);
+
+            // 2. VERIFICATION : Si aucune couleur n'est choisie, on ne fait rien (Ecran d'attente)
+            if (couleursChoisies.length === 0) {
+                // On cache le chargement
+                if(loadingOverlay) loadingOverlay.classList.add('hidden');
+                if(bouton) { bouton.disabled = false; bouton.textContent = "Mettre à jour le rendu"; bouton.style.opacity = "1"; }
+                
+                // On s'assure que l'écran d'accueil (vidéo) est bien visible
+                const initialOverlay = document.getElementById('initial-overlay');
+                if(initialOverlay) {
+                    initialOverlay.classList.remove('hidden');
+                    const vid = initialOverlay.querySelector('video');
+                    if(vid) vid.play().catch(e => {});
+                }
+                
+                // On cache le canvas et le pattern
+                if(canvas) canvas.style.display = 'none';
+                const layer = document.getElementById('wall-pattern-layer');
+                if(layer) layer.style.display = 'none';
+
+                // On vide les stats
+                document.getElementById('sum-surface').textContent = '0 m²';
+                document.getElementById('sum-briques').textContent = '0';
+                
+                return; // ON ARRÊTE L'EXÉCUTION ICI
+            }
+
+            // 3. SI ON A UNE COULEUR, ON CONTINUE (On ne redéclare PAS couleursChoisies)
             const produitChoisi = getSingleValue(containerProduit);
             const finitionsChoisies = getMultiValues(containerFinition);
-            const couleursChoisies = getMultiValues(containerCouleur);
+            // NOTE : "couleursChoisies" est déjà déclaré plus haut
+            
             const appareillageChoisi = selectAppareillage.value;
             const nomFichierJointGlobal = selectJoint ? selectJoint.value : 'joint_grisclair.png';
             const typeJoint = selectTypeJoint ? selectTypeJoint.value : 'plat'; 
@@ -694,12 +760,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     cols.forEach(c => {
                         fins.forEach(f => {
-                             // CORRECTION : Si la couleur interdit le Roc, on force le chargement du Lisse
                              let finishToLoad = f;
                              if (f === 'roc' && NO_ROC_COLORS.includes(c)) {
                                  finishToLoad = 'lisse';
                              }
-                             
                              for(let i=1; i<=NOMBRE_VARIATIONS; i++) {
                                  const name = `${c}_${finishToLoad}_${i}.png`;
                                  if (!listeACharger.includes(name)) listeACharger.push(name);
@@ -741,7 +805,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             reliefInColor, reliefInFinish 
                         );
                         
-                        if(selectScene && selectScene.value !== 'neutre') { updateSceneView(selectScene.value); }
+                        // IMPORTANT : On force l'affichage du canvas (car le Reset l'avait caché)
+                        if(selectScene) { updateSceneView(selectScene.value); }
 
                     } catch (e) { console.error("Erreur dessin", e); }
                 })
@@ -933,14 +998,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (reliefInColor && reliefInColor !== 'auto') couleurName = reliefInColor;
                     if (reliefInFinish && reliefInFinish !== 'auto') finitionName = reliefInFinish;
                 }
-                // =========================================================
-                // SECURITÉ CRITIQUE : FORCE LE LISSE SI LA COULEUR INTERDIT LE ROC
-                // (Empêche le bug d'affichage sur les Terres Cuites / Rouges)
-                // =========================================================
+                
+                // SECURITÉ ROC
                 if (finitionName === 'roc' && NO_ROC_COLORS.includes(couleurName)) {
                     finitionName = 'lisse';
                 }
-                // =========================================================
 
                 // STATS
                 if (couleurName && finitionName) {
@@ -966,22 +1028,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                     ctx.translate(drawX, drawY);
-                    // =================================================================
-                    // NOUVEAU : EFFET DE PROFONDEUR "EXTRUSION SOLIDE"
-                    // =================================================================
+                    
                     if (appareillage === 'moucharabieh') {
-                        // On définit l'épaisseur virtuelle de la brique (ex: 25px d'épaisseur visuelle)
                         const profondeur3D = 25 * ECHELLE; 
-                        
-                        // On dessine le "bloc d'ombre" solide D'ABORD (donc derrière la texture)
-                        // Il est décalé vers le bas et la droite pour simuler la perspective
-                        ctx.fillStyle = "#0a0a0a"; // Presque noir, pour la tranche de la brique
+                        ctx.fillStyle = "#0a0a0a"; 
                         ctx.fillRect(profondeur3D, profondeur3D, currentBriqueWidth, HAUTEUR_BRIQUE_PX);
-                        
-                        // Ajout optionnel : une deuxième couche plus floue pour lier le tout au fond
-                        // ctx.shadowColor = "#000"; ctx.shadowBlur = 30*ECHELLE; ctx.fillRect(profondeur3D/2, profondeur3D/2, currentBriqueWidth, HAUTEUR_BRIQUE_PX); ctx.shadowBlur = 0;
                     }
-                    // =================================================================
 
                     if (appareillage !== 'moucharabieh' && LARGEUR_JOINT_V_PX > 0) {
                         ctx.fillStyle = currentPatternV; ctx.fillRect(currentBriqueWidth, 0, LARGEUR_JOINT_V_PX, HAUTEUR_BRIQUE_PX);
@@ -1043,7 +1095,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 9. ESTIMATION TECHNIQUE (CORRIGÉE ET RENFORCÉE)
+    // 9. ESTIMATION TECHNIQUE
     // ==========================================
     
     function updateTechSummary(widthMM, heightMM, configProduit, statsReal) {
@@ -1139,7 +1191,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const finishName = (finishCode === 'roc') ? 'Roc' : 'Lisse';
                 const displayName = `<span style="font-weight:bold;">${colorName}</span> <small>(${finishName})</small>`;
                 
-                // FALLBACK SECURISE
                 const bgCol = FALLBACK_COLORS[colorCode] || '#cccccc'; 
 
                 const tr = document.createElement('tr');
@@ -1156,20 +1207,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (resizer) resizer.addEventListener('mousedown', mouseDownHandler);
 
     function dismissWelcomeScreen() {
-        if (initialOverlay && !initialOverlay.classList.contains('hidden')) {
-            initialOverlay.classList.add('hidden'); const video = initialOverlay.querySelector('video'); if (video) video.pause();
-        }
+        // Cette fonction n'est plus utilisée pour cacher l'écran automatiquement au clic global
+        // car nous voulons forcer le choix de couleur.
+        // On la laisse vide pour ne pas casser d'éventuels appels existants
     }
-    const configPanel = document.querySelector('.config-panel');
-    if (configPanel) { configPanel.addEventListener('mousedown', dismissWelcomeScreen, { once: true }); configPanel.addEventListener('touchstart', dismissWelcomeScreen, { once: true }); configPanel.addEventListener('change', dismissWelcomeScreen, { once: true }); }
-    if (resizer) resizer.addEventListener('mousedown', dismissWelcomeScreen, { once: true });
-
-    // PAS DE DEMARRAGE AUTO (On attend le clic)
-    // setTimeout(triggerAutoUpdate, 500); 
-// =========================================================
-    // 10. GESTION RESPONSIVE : DÉPLACEMENT DE L'ESTIMATION
-    // =========================================================
     
+    // =========================================================
+    // 10. GESTION RESPONSIVE
+    // =========================================================
     function gererPlacementEstimation() {
         const isMobile = window.innerWidth <= 900;
         const techSummary = document.getElementById('tech-summary');
@@ -1180,24 +1225,417 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!techSummary || !configPanel || !previewPanel || !exportSection) return;
 
         if (isMobile) {
-            // SUR MOBILE : On déplace l'estimation dans le panneau de config, AVANT les boutons d'export
             if (techSummary.parentElement !== configPanel) {
                 configPanel.insertBefore(techSummary, exportSection);
             }
         } else {
-            // SUR DESKTOP : On remet l'estimation dans le panneau de prévisualisation (à la fin)
             if (techSummary.parentElement !== previewPanel) {
                 previewPanel.appendChild(techSummary);
             }
         }
     }
-
-    // On lance la fonction au chargement...
     gererPlacementEstimation();
-
-    // ... et à chaque fois qu'on redimensionne la fenêtre (passage portrait/paysage)
     window.addEventListener('resize', gererPlacementEstimation);
 
     // =========================================================
+    // 11. GENERATEUR DE NOM DYNAMIQUE
+    // =========================================================
+    function genererNomFichier(extension) {
+        const produitEl = document.querySelector('#container-produit .custom-option.selected span');
+        let nomProduit = produitEl ? produitEl.textContent.trim() : 'Produit';
+        const finitionsEls = document.querySelectorAll('#container-finition .custom-option.selected span');
+        let nomFinitions = Array.from(finitionsEls).map(el => el.textContent.trim()).join('-');
+        if (!nomFinitions) nomFinitions = 'Finition';
+        const couleursEls = document.querySelectorAll('#select-couleur .custom-option.selected span');
+        let nomCouleurs = Array.from(couleursEls).map(el => el.textContent.trim()).join('-');
+        if (!nomCouleurs) nomCouleurs = 'Couleur';
+        let dimsZone = "Zone";
+        if (typeof lastWidthMM !== 'undefined' && typeof lastHeightMM !== 'undefined' && lastWidthMM > 0) {
+            dimsZone = `${Math.round(lastWidthMM)}x${Math.round(lastHeightMM)}mm`;
+        }
+        const clean = (str) => str.replace(/[^a-zA-Z0-9-_àâéèêëîïôùûçÀÂÉÈÊËÎÏÔÙÛÇ]/g, '_');
+        return `Biallais_${clean(nomProduit)}_${clean(nomFinitions)}_${clean(nomCouleurs)}_${dimsZone}.${extension}`;
+    }
+
+    // =========================================================
+    // 12. EXPORTS IMAGES
+    // =========================================================
+    if (btnExportJpg) {
+        btnExportJpg.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!canvas) return;
+            try {
+                const link = document.createElement('a');
+                link.download = genererNomFichier('jpg');
+                link.href = canvas.toDataURL("image/jpeg", 0.9);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (err) { console.error("Erreur JPG:", err); }
+        });
+    }
+
+    if (btnExportPng) {
+        btnExportPng.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!canvas) return;
+            try {
+                const link = document.createElement('a');
+                link.download = genererNomFichier('png');
+                link.href = canvas.toDataURL("image/png");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (err) { console.error("Erreur PNG:", err); }
+        });
+    }
+
+    // =========================================================
+    // 13. EXPORT PDF
+    // =========================================================
+    if (btnExportPdf) {
+        btnExportPdf.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!window.jspdf) { alert("Librairie PDF non chargée."); return; }
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'landscape' });
+                const nomFichierFull = genererNomFichier('pdf'); 
+                const titreInterne = nomFichierFull.replace('.pdf', '').replace(/_/g, ' ');
+
+                doc.setFontSize(14);
+                doc.setTextColor(40, 167, 69); 
+                doc.text("Configuration Biallais Industries", 10, 15);
+                
+                doc.setFontSize(10);
+                doc.setTextColor(100);
+                doc.text(titreInterne, 10, 22);
+
+                const imgData = canvas.toDataURL("image/jpeg", 0.95);
+                const props = doc.getImageProperties(imgData);
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                
+                const margin = 10;
+                const maxW = pageWidth - (margin * 2);
+                const maxH = pageHeight - 40; 
+                const ratio = props.width / props.height;
+                let w = maxW;
+                let h = w / ratio;
+                if (h > maxH) { h = maxH; w = h * ratio; }
+                
+                doc.addImage(imgData, 'JPEG', 10, 30, w, h);
+                doc.save(nomFichierFull);
+
+            } catch (err) {
+                console.error("Erreur PDF:", err);
+                alert("Erreur lors de la génération du PDF.");
+            }
+        });
+    }
+
+    // =========================================================
+    // 14. EXPORT CCTP - VERSION PRESCRIPTION 2025
+    // =========================================================
+    if (btnExportCCTP) {
+        btnExportCCTP.addEventListener('click', () => {
+            
+            // --- A. RÉCUPÉRATION DES DONNÉES ---
+            const cctpProduitVal = getSingleValue(containerProduit);
+            const cctpConfigP = PRODUITS_CONFIG[cctpProduitVal] || PRODUITS_CONFIG['p1'];
+            const cctpProduitEl = containerProduit.querySelector('.custom-option.selected');
+            const cctpNomProduit = cctpProduitEl ? cctpProduitEl.querySelector('span').textContent.trim() : "Produit Gamme Biallais";
+            const cctpDims = cctpConfigP.dims; 
+            
+            const cctpCouleursEls = containerCouleur.querySelectorAll('.custom-option.selected');
+            const cctpListeCouleurs = Array.from(cctpCouleursEls).map(el => el.querySelector('span').textContent).join(', ');
+
+            const cctpFinitionsEls = containerFinition.querySelectorAll('.custom-option.selected');
+            const cctpListeFinitions = Array.from(cctpFinitionsEls).map(el => el.querySelector('span').textContent).join(' & ');
+
+            // Joint et Appareillage
+            const cctpSelectJoint = document.getElementById('select-joint');
+            const cctpNomJoint = cctpSelectJoint.options[cctpSelectJoint.selectedIndex].text.replace(' (Standard)', '').replace('Joint ', '');
+            
+            const cctpLargeurJointH = sliderJointH ? parseInt(sliderJointH.value) : 10;
+            const cctpNomAppareillage = selectAppareillage.options[selectAppareillage.selectedIndex].text;
+            const cctpDate = new Date().toLocaleDateString('fr-FR');
+
+            // --- B. GÉNÉRATION DU CONTENU TECHNIQUE ---
+            let titreLot = "";
+            let articleMateriaux = "";
+            let articleMiseEnOeuvre = "";
+            
+            // 1. CAS PLAQUETTES
+            if (cctpProduitVal === 'p6' || cctpProduitVal === 'p9') {
+                titreLot = "LOT FAÇADE : PAREMENT DE PLAQUETTES COLLÉES";
+                
+                articleMateriaux = `
+1.1 PLAQUETTES DE PAREMENT
+Fourniture de plaquettes de parement en béton architectonique.
+- Référence de base : Gamme BIALLAIS ${cctpNomProduit.toUpperCase()} ou équivalent technique et esthétique.
+- Caractéristiques : Éléments décoratifs garantis sans efflorescence de chaux.
+- Format nominal : ${cctpDims.hauteur} x ${cctpDims.largeur} x 2 cm.
+- Aspect de surface : ${cctpListeFinitions}.
+- Teinte(s) : ${cctpListeCouleurs} (Validation sur échantillon requise).
+- Conformité : Marquage CE obligatoire.
+
+1.2 SYSTÈME DE COLLAGE
+- Colle : Mortier-colle haute performance type PAREX LANKO ou équivalent, adapté au support.
+- Mortier de jointoiement : Mortier spécifique hydrofugé type BIAJOINT ou équivalent.
+- Teinte du joint : ${cctpNomJoint.toUpperCase()} (Référence fabricant ou équivalent).`;
+
+                articleMiseEnOeuvre = `
+2.1 CONDITIONS DE POSE
+L'exécution devra être conforme au DTU 52.2 "Pose collée des revêtements céramiques et assimilés".
+Le support devra être plan, propre, sec et cohésif.
+
+2.2 TRAITEMENT DES JOINTS
+- Épaisseur moyenne : ${cctpLargeurJointH} mm environ (Ajustement selon calepinage).
+- Finition : ${cctpNomAppareillage}.
+- Nettoyage : À l'avancement, par essuyage à l'éponge propre et eau claire. L'usage d'acide chlorhydrique est strictement interdit.`;
+
+            // 2. CAS BLOCS PORTEURS
+            } else if (cctpProduitVal === 'p1' || cctpProduitVal === 'p2' || cctpProduitVal === 'p3') {
+                const epaisseurBloc = (cctpProduitVal === 'p3') ? '9' : (cctpProduitVal === 'p2' ? '15' : '19');
+                titreLot = "LOT GROS ŒUVRE : MURS EN BLOCS DE BÉTON ARCHITECTONIQUE";
+
+                articleMateriaux = `
+1.1 ÉLÉMENTS DE MAÇONNERIE
+Fourniture de blocs en béton architectonique apparents sur une ou deux faces.
+- Référence de base : Gamme BIALLAIS ${cctpNomProduit.toUpperCase()} ou équivalent technique.
+- Dimensions : ${cctpDims.hauteur} x ${cctpDims.largeur} x ${epaisseurBloc} cm.
+- Aspect et Couleur : ${cctpListeFinitions}, Teinte ${cctpListeCouleurs}.
+- Qualité : Blocs garantis sans efflorescence, certifiés NF et CE.
+
+1.2 MORTIER DE MONTAGE
+- Produit : Mortier industriel coloré hydrofugé dans la masse, type BIAMORTIER ou équivalent.
+- Teinte : ${cctpNomJoint.toUpperCase()} (Assortie ou contrastée selon choix architecte).
+- Dosage : Conforme aux exigences structurelles (min 350kg/m3).`;
+
+                articleMiseEnOeuvre = `
+2.1 EXÉCUTION DES MAÇONNERIES
+Les travaux seront réalisés conformément au DTU 20.1 "Ouvrages de maçonnerie de petits éléments".
+- Appareillage : ${cctpNomAppareillage}.
+- Joints : Épaisseur nominale de ${cctpLargeurJointH} mm. Continuité de l'étanchéité assurée.
+- Protection : Bâchage systématique des têtes de murs en fin de poste (Sujétion d'entreprise).
+
+2.2 TRAITEMENT DES POINTS SINGULIERS
+- Chaînages et raidisseurs : Réalisés à l'aide d'éléments spéciaux (blocs d'angle, linteaux en U) de la même gamme ou équivalent.
+- Remplissage : Béton C25/30 avec armatures selon étude béton armé.`;
+
+            // 3. CAS ITE (BRIQUE P8)
+            } else if (cctpProduitVal === 'p8') {
+                titreLot = "LOT FAÇADE : DOUBLE MUR BRIQUE SUR ISOLATION (ITE)";
+
+                articleMateriaux = `
+1.1 BRIQUES DE PAREMENT
+Fourniture de briques de parement pleines ou perforées.
+- Référence de base : Gamme BIALLAIS ${cctpNomProduit.toUpperCase()} ou équivalent technique.
+- Format de coordination : 6 x 11 x 44 cm.
+- Classement : P250 (Haute résistance).
+- Aspect : ${cctpListeFinitions} / Teinte : ${cctpListeCouleurs}.
+
+1.2 SYSTÈME DE FIXATION ET MORTIER
+- Mortier : Type BIAMORTIER ou équivalent, hydrofugé. Teinte ${cctpNomJoint.toUpperCase()}.
+- Fixations : Agrafes de liaison en acier inoxydable (Type à définir selon étude technique).
+- Accessoires : Consoles de supportage en inox (si rupture de charge nécessaire).`;
+
+                articleMiseEnOeuvre = `
+2.1 MISE EN ŒUVRE DU COMPLEXE
+La pose sera conforme au DTU 20.1 partie "Murs doubles".
+- Lame d'air : Ventilée sur toute la hauteur (épaisseur min. 2 cm).
+- Ancrage : Pose des agrafes à l'avancement (min. 5 u/m²), liaisonnées à la structure porteuse.
+- Calepinage : Appareillage ${cctpNomAppareillage}, joints de ${cctpLargeurJointH} mm.`;
+
+            // 4. CAS GÉNÉRAL (BRIQUES P4, P5, P7)
+            } else {
+                const epaisseur = (cctpProduitVal === 'p4') ? '22' : ((cctpProduitVal === 'p7') ? '19' : '11');
+                titreLot = "LOT MAÇONNERIE : BRIQUES DE PAREMENT COMPOSITES";
+
+                articleMateriaux = `
+1.1 BRIQUES ARCHITECTONIQUES
+- Référence de base : Gamme BIALLAIS ${cctpNomProduit.toUpperCase()} ou équivalent approuvé.
+- Format : ${cctpDims.hauteur} x ${cctpDims.largeur} x ${epaisseur} cm.
+- Caractéristiques : Garantie sans efflorescence, calibrage régulier, marquage CE.
+- Finition : ${cctpListeFinitions}.
+- Coloris : ${cctpListeCouleurs}.
+
+1.2 MORTIER DE POSE
+- Type : Mortier prêt à gâcher coloré, type BIAMORTIER ou équivalent.
+- Spécificité : Hydrofugé dans la masse, garanti sans efflorescence de chaux.
+- Teinte : ${cctpNomJoint.toUpperCase()}.`;
+
+                articleMiseEnOeuvre = `
+2.1 PRINCIPE D'EXÉCUTION
+Travaux conformes au DTU 20.1.
+- Calepinage : ${cctpNomAppareillage}.
+- Jointoiement : Exécution "au fer" ou brossé. Épaisseur constante de ${cctpLargeurJointH} mm.
+
+2.2 PRÉCAUTIONS ET NETTOYAGE
+- Stockage : Sur palettes houssées, isolées du sol naturel.
+- Intempéries : Protection obligatoire des murs en cours de séchage par bâches étanches.`;
+            }
+
+            // --- C. ASSEMBLAGE DU TEXTE CONTRACTUEL ---
+            const contenuFinal = `
+--------------------------------------------------------------------------------
+DOCUMENT TECHNIQUE : CAHIER DES CLAUSES TECHNIQUES PARTICULIÈRES (C.C.T.P.)
+PROJET : ${cctpNomProduit}
+DATE D'ÉDITION : ${cctpDate}
+--------------------------------------------------------------------------------
+
+CHAPITRE 1 : ${titreLot}
+
+1. MATÉRIAUX ET PRODUITS
+Le présent lot comprend la fourniture et la mise en œuvre des matériaux décrits ci-après. 
+Toute mention d'une marque commerciale est donnée à titre de référence de qualité ; l'entreprise peut proposer tout produit "équivalent" respectant les mêmes caractéristiques techniques et esthétiques.
+
+${articleMateriaux}
+
+2. MISE EN ŒUVRE ET PRESCRIPTIONS
+L'entreprise du présent lot devra livrer les ouvrages en parfait état d'achèvement.
+
+${articleMiseEnOeuvre}
+
+3. ÉCHANTILLONNAGE ET VALIDATION (CLAUSE TYPE 2025)
+Avant tout commencement d'exécution, l'entrepreneur soumettra à l'agrément de la Maîtrise d'Œuvre :
+- Un tableau d'échantillons des produits (Teinte ${cctpListeCouleurs}, Finition ${cctpListeFinitions}).
+- Un échantillon de joint (Teinte ${cctpNomJoint.toUpperCase()}) réalisé in situ ou sur maquette.
+- Les Fiches de Données de Sécurité (FDS) et les Déclarations des Performances (DoP) des produits ou de leur équivalent.
+
+4. LIMITES DE PRESTATIONS
+Sont inclus au présent lot :
+- La fourniture, le transport et le levage des matériaux.
+- L'échafaudage et les protections nécessaires.
+- Le nettoyage final du parement.
+
+--------------------------------------------------------------------------------
+Document généré via Biallais Configurator v4.6 (Export Standardisé 2025)
+`;
+
+            // --- D. CRÉATION DU FICHIER ---
+            try {
+                const blob = new Blob([contenuFinal], { type: "text/plain;charset=utf-8" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                const cleanName = cctpNomProduit.replace(/[^a-zA-Z0-9àâéèêëîïôùûçÀÂÉÈÊËÎÏÔÙÛÇ]/g, '_');
+                link.download = `CCTP_Biallais_${cleanName}_${Date.now()}.txt`;
+                link.style.display = "none";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (err) {
+                console.error("Erreur Export CCTP:", err);
+                alert("Une erreur est survenue lors de la génération du document.");
+            }
+        });
+    }
+
+    // =========================================================
+    // 15. FONCTION DE RÉINITIALISATION (RESET TOTAL)
+    // =========================================================
+    const btnReset = document.getElementById('btnReset');
+    
+    if (btnReset) {
+        btnReset.addEventListener('click', () => {
+            if(!confirm("Voulez-vous vraiment réinitialiser toute la configuration et revenir à zéro ?")) return;
+
+            // 1. Réinitialiser les Sélecteurs
+            if(selectAppareillage) selectAppareillage.value = 'demi-brique';
+            if(selectJoint) selectJoint.selectedIndex = 0; 
+            if(selectTypeJoint) selectTypeJoint.value = 'plat';
+            if(selectReliefType) selectReliefType.value = 'none';
+            if(selectScene) selectScene.value = 'neutre'; 
+
+            // 2. Réinitialiser les Sliders
+            if(sliderJointH) { sliderJointH.value = 10; }
+            if(sliderJointV) { sliderJointV.value = 10; }
+            if(sliderRoc) { sliderRoc.value = 25; }
+            if(sliderReliefPercent) { sliderReliefPercent.value = 10; }
+            if(zoomSlider) { zoomSlider.value = 1; zoomSlider.dispatchEvent(new Event('input')); }
+            updateUIValues(); 
+
+            // 3. Réinitialiser Produit (P1 par défaut)
+            const allProducts = containerProduit.querySelectorAll('.custom-option');
+            allProducts.forEach(el => el.classList.remove('selected'));
+            const p1 = containerProduit.querySelector('[data-value="p1"]');
+            if(p1) p1.classList.add('selected');
+            updateEpaisseurText('p1');
+
+            // 4. RÉINITIALISER COULEURS -> AUCUNE SÉLECTION
+            const allColors = containerCouleur.querySelectorAll('.custom-option');
+            allColors.forEach(el => el.classList.remove('selected'));
+            
+            if(subPaletteRouge) {
+                subPaletteRouge.style.display = 'none';
+                if(btnOpenRouges) {
+                    btnOpenRouges.style.backgroundColor = "#ffebee";
+                    btnOpenRouges.style.borderColor = "#e57373";
+                }
+            }
+
+            // 5. Réinitialiser Finitions (Lisse par défaut)
+            const allFinishes = containerFinition.querySelectorAll('.custom-option');
+            allFinishes.forEach(el => el.classList.remove('selected', 'disabled'));
+            const lisse = containerFinition.querySelector('[data-value="lisse"]');
+            if(lisse) lisse.classList.add('selected');
+
+            // 6. Nettoyer les Règles
+            rulesData = [];
+            renderRules(); 
+            if(document.getElementById('new-line-number')) document.getElementById('new-line-number').value = '';
+
+            // 7. Cacher les sections dynamiques
+            if(containerColorDist) containerColorDist.style.display = 'none';
+            if(rocDistributionWrapper) rocDistributionWrapper.style.display = 'none';
+            if(containerReliefSection) containerReliefSection.style.display = 'none';
+            if(containerRocOptions) containerRocOptions.style.display = 'none';
+            if(msgAstuceRoc) msgAstuceRoc.style.display = 'none';
+
+            // 8. Réinitialiser l'affichage -> RETOUR VIDÉO
+            const canvasObj = document.getElementById('apercuCanvas');
+            const overlayObj = document.getElementById('initial-overlay');
+            const patternObj = document.getElementById('wall-pattern-layer');
+            const loadingObj = document.getElementById('loading-overlay');
+
+            if(canvasObj) canvasObj.style.display = 'none';
+            if(patternObj) patternObj.style.display = 'none';
+            if(loadingObj) loadingObj.classList.add('hidden');
+            
+            if(overlayObj) {
+                overlayObj.classList.remove('hidden');
+                const vid = overlayObj.querySelector('video');
+                if(vid) { vid.currentTime = 0; vid.play().catch(e => console.log(e)); }
+            }
+
+            // 9. Reset Estimation
+            if(userSurfaceInput) userSurfaceInput.value = '';
+            document.getElementById('sum-surface').textContent = '0 m²';
+            document.getElementById('sum-briques').textContent = '0';
+            document.getElementById('distribution-body').innerHTML = '';
+            document.getElementById('mortier-details-list').innerHTML = '';
+            if(dimensionsInfoSpan) dimensionsInfoSpan.textContent = '';
+
+            if(bouton) {
+                bouton.textContent = "Mettre à jour le rendu";
+                bouton.style.opacity = "1";
+            }
+            
+            // 10. REAFFICHER LE MESSAGE D'INSTRUCTION
+            updateInstructionMessage();
+
+            validateRocConstraints();
+            checkVerticalJointLimit('p1');
+            updateMaxRows();
+            
+            if(window.innerWidth <= 900) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    }
+
+    // Appel initial au chargement pour afficher le message si besoin
+    updateInstructionMessage();
 
 });
