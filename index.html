@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configurateur Biallais - v4.4 Finale</title>
+    <title>Configurateur Biallais - v5.11 CCTP Auto</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="manifest" href="manifest.json">
@@ -57,7 +57,6 @@
                                         <span style="font-weight:bold; color:#c62828; font-size:0.8rem; display:block;">Gamme<br>Rouges</span>
                                     </div>
                                 </div>
-
                                 <div id="sub-palette-rouge" class="pop-in">
                                     <div class="custom-grid-list multi-choice">
                                         <div class="custom-option" data-value="rouge"><img src="vignette_rouge.png" onerror="this.style.backgroundColor='#c0392b'"><span>Rouge (Std)</span></div>
@@ -88,6 +87,7 @@
                         </div>
                     </div>
                 </div> 
+                
                 <div id="container-color-dist" style="display:none; margin-top: 15px; background: #f8f9fa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
                     <div id="dynamic-sliders-container"></div>
                 </div>
@@ -99,11 +99,21 @@
                     <div class="custom-option selected" data-value="lisse"><img src="vignette_lisse.png" onerror="this.src='https://placehold.co/100x60?text=Lisse'"><span>Aspect Lisse</span></div>
                     <div class="custom-option" data-value="roc"><img src="vignette_roc.png" onerror="this.src='https://placehold.co/100x60?text=Roc'"><span>Aspect Roc</span></div>
                 </div>
-                <div id="msg-astuce-roc" class="info-box" style="display:none; margin-top:10px;">
-                    <span><strong>Astuce :</strong> Sélectionnez "Aspect Roc" pour débloquer les options de répartition.</span>
+                
+                <div id="wrapper-repartition" style="display:none; margin-top: 15px; background: #f1f3f5; padding: 10px; border-radius: 6px;">
+                    <label class="sub-label">Répartition du "Roc" : <span id="slider-roc-valeur">25%</span></label>
+                    <div class="slider-container"><input type="range" id="slider-roc" min="0" max="100" value="25" step="5"></div>
                 </div>
 
                 <div id="container-roc-options" style="display:none; margin-top:20px; border-top: 1px dashed #eee; padding-top: 15px;">
+                    
+                    <div style="background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
+                        <p style="font-size:0.85rem; color:#0d47a1; margin:0; line-height:1.4;">
+                            <strong>Conseil de calepinage :</strong> Pour un rendu précis (ex : mur Lisse avec bandeaux Roc), sélectionnez d'abord uniquement votre finition majoritaire ci-dessus.
+                            <br><span style="display:block; margin-top:4px;">Utilisez ensuite le module ci-dessous pour imposer l'autre aspect sur les rangs souhaités.</span>
+                        </p>
+                    </div>
+
                     <label class="sub-label">Forcer une ligne spécifique <span id="info-max-lines" style="font-weight:normal; color:#666; font-size:0.85rem;"></span> :</label>
                     <div class="rule-builder" style="flex-direction: column; align-items: stretch;">
                         <div style="display: flex; gap: 5px;">
@@ -133,10 +143,9 @@
                                 <option value="liedevin">Lie de Vin</option>
                             </select>
                         </div>
-<div style="display: flex; gap: 5px; margin-top: 5px;">
-                            
-                            <select id="new-line-joint" class="form-control small-input" style="width: 200px; flex: none;">
-                                <option value="">Joint vertical (Ligne forcée)</option>
+                        <div style="display: flex; gap: 5px; margin-top: 5px;">
+                            <select id="new-line-joint" class="form-control small-input" style="width: 130px; flex: none;">
+                                <option value="">Joint (Ligne)</option>
                                 <option value="joint_grisclair.png">Gris Clair</option>
                                 <option value="joint_blanc.png">Blanc</option>
                                 <option value="joint_superblanc.png">Super Blanc</option>
@@ -149,17 +158,11 @@
                                 <option value="joint_grisfonce.png">Gris Foncé</option>
                                 <option value="joint_anthracite.png">Anthracite</option>
                             </select>
-
-                            <button id="btn-add-rule" class="btn-mini" style="background-color: #28a745; width: auto; flex: 1; font-weight: bold; font-size: 0.85rem; padding: 0 10px;">APPLIQUER +</button>
-                            
+                            <button id="btn-add-rule" class="btn-mini" style="background-color: #28a745; width: auto; flex: 1; font-weight: bold; font-size: 0.85rem; padding: 0 10px;">VALIDER +</button>
                             <button id="btn-reset-rules" class="btn-mini btn-danger" title="Tout effacer">🗑️</button>
                         </div>
                     </div>
                     <div id="active-rules-container" class="tags-container" style="margin-top:10px;"></div>
-                </div>
-                <div id="wrapper-repartition" style="display:none; margin-top: 15px; background: #f1f3f5; padding: 10px; border-radius: 6px;">
-                    <label class="sub-label">Répartition du "Roc" : <span id="slider-roc-valeur">25%</span></label>
-                    <div class="slider-container"><input type="range" id="slider-roc" min="0" max="100" value="25" step="5"></div>
                 </div>
             </div>
 
@@ -183,7 +186,6 @@
             <details class="advanced-settings-container">
                 <summary class="advanced-summary">⚙️ Paramètres Avancés</summary>
                 <div class="advanced-content">
-                    
                     <div class="config-section">
                         <label class="sub-label">Appareillage :</label>
                         <select id="select-appareillage" class="form-control">
@@ -195,7 +197,6 @@
                             <option value="moucharabieh">Moucharabieh (Perforé)</option>
                         </select>
                     </div>
-
                     <div class="config-section">
                         <label class="sub-label">Type de joint :</label>
                         <select id="select-type-joint" class="form-control" style="margin-bottom: 15px;">
@@ -216,20 +217,17 @@
                     
                     <div id="container-relief-section" class="config-section" style="border-top:1px dashed #eee; margin-top:15px; padding-top:15px;">
                         <label class="sub-label">Effet de Profondeur (Relief 3D) :</label>
-                        
                         <select id="select-relief-type" class="form-control" style="margin-bottom:10px;">
                             <option value="none">Aucun (Mur plat)</option>
                             <option value="random-out">Aléatoire : Briques en Saillie (Avancées)</option>
                             <option value="random-in">Aléatoire : Briques en Retrait (Reculées)</option>
                             <option value="random-mix">Aléatoire : Mixte (Avancées + Reculées)</option>
                         </select>
-
                         <div class="slider-container" id="container-relief-percent" style="display:none;">
                             <label for="slider-relief-percent" style="width:140px;">Proportion :</label>
                             <input type="range" id="slider-relief-percent" min="0" max="50" value="10" step="5">
                             <span id="slider-relief-valeur">10%</span>
                         </div>
-                        
                         <div id="container-relief-out-options" style="display:none; margin-top:10px; padding-top:10px; border-top:1px dotted #ccc; background-color: #fcfcfc;">
                             <label class="sub-label" style="font-size:0.85rem; color:#28a745;">⬆️ Apparence Saillie (Avancée) :</label>
                             <div style="display:flex; gap:10px;">
@@ -262,7 +260,6 @@
                                 </select>
                             </div>
                         </div>
-
                         <div id="container-relief-in-options" style="display:none; margin-top:10px; padding-top:10px; border-top:1px dotted #ccc; background-color: #fcfcfc;">
                             <label class="sub-label" style="font-size:0.85rem; color:#dc3545;">⬇️ Apparence Retrait (Reculée) :</label>
                             <div style="display:flex; gap:10px;">
@@ -300,6 +297,7 @@
             </details>
 
             <button id="genererBouton" class="btn-primary">Mettre à jour le rendu</button>
+            <button id="btnResetConfig" class="btn-secondary" style="margin-top:10px; width:100%; font-weight:bold; color: #fff; background-color: #6c757d; border: 1px solid #6c757d;">🔄 Réinitialiser le configurateur</button>
 
             <div class="export-section">
                 <p class="export-label">Télécharger :</p>
@@ -307,6 +305,7 @@
                     <button id="btnExportJpg" class="btn-secondary">JPG</button>
                     <button id="btnExportPng" class="btn-secondary">PNG</button>
                     <button id="btnExportPdf" class="btn-secondary">PDF</button>
+                    <button id="btnExportCctp" class="btn-secondary" style="background-color: #2c3e50; border-color: #2c3e50;">📄 CCTP</button>
                 </div>
             </div>
             
@@ -371,6 +370,7 @@
                         <span class="sum-value" id="sum-briques">0</span>
                     </div>
                 </div>
+                
                 <table class="distribution-table">
                     <thead>
                         <tr>
@@ -383,6 +383,7 @@
                     <tbody id="distribution-body">
                     </tbody>
                 </table>
+
                 <div id="mortier-section" style="margin-top: 15px; background-color: #f1f3f5; padding: 12px; border-radius: 6px; border-left: 5px solid #6c757d;">
                     <h5 style="margin: 0 0 10px 0; color: #495057; font-size: 0.95rem; display:flex; align-items:center; gap:8px;">
                         🧱 Consommation Mortier (Joints)
