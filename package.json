@@ -1,7 +1,7 @@
 {
   "name": "configurateur-biallais",
-  "version": "1.0.0",
-  "description": "Configurateur de façade Biacolor",
+  "version": "5.13.0",
+  "description": "Configurateur de Parement Biacolor",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -9,15 +9,19 @@
   },
   "author": "Biallais Industries",
   "license": "ISC",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.0"
+  },
   "build": {
     "appId": "com.biallais.configurateur",
+    "productName": "Configurateur Biallais",
     "win": {
-      "target": "nsis",
-      "icon": "icon.png" 
-    }
-  },
-  "devDependencies": {
-    "electron": "^30.0.0",
-    "electron-builder": "^24.13.3"
+      "target": "portable",
+      "icon": "icon.ico"
+    },
+    "files": [
+      "**/*"
+    ]
   }
 }
